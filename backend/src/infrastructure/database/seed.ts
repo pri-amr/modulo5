@@ -5,7 +5,7 @@ import { CategoryModel } from '../models/CategoryModel';
 import { MoneySourceModel } from '../models/MoneySourceModel';
 import { UserModel } from '../models/UserModel';
 
-const SEED_USER_NAME = 'Usuario Demo';
+export const SEED_USER_NAME = 'Usuario Demo';
 const SEED_MONEY_SOURCE_NAME = 'Efectivo';
 const SEED_CATEGORY_NAME = 'General';
 

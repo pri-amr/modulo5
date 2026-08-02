@@ -1,7 +1,9 @@
 import cors from 'cors';
 import express, { type Application, type Router } from 'express';
 
+import { swaggerSpec } from './infrastructure/swagger/swagger.config';
 import { errorHandler } from './presentation/middlewares/errorHandler';
+import { transactionRoutes } from './presentation/routes/transaction.routes';
 
 const app: Application = express();
 
@@ -18,6 +20,13 @@ const apiRouter: Router = express.Router();
 app.use(cors());
 app.use(express.json({ limit: '10kb' }));
 app.use(apiRouter);
+
+// Montado sobre `apiRouter` (nunca sobre `app` directamente) para que `errorHandler` capture
+// cualquier error lanzado dentro de estas rutas — ver comentario arriba (R5).
+apiRouter.use('/api/transactions', transactionRoutes);
+apiRouter.get('/api-docs', (_req, res) => {
+  res.json(swaggerSpec);
+});
 
 app.use(errorHandler);
 
