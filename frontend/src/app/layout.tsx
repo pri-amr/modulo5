@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 
+import ThemeSync from "@/components/ThemeSync";
+import ThemeToggle from "@/components/ThemeToggle";
+
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -13,8 +16,12 @@ type RootLayoutProps = {
 
 const RootLayout = ({ children }: RootLayoutProps): React.JSX.Element => {
   return (
-    <html lang="es">
-      <body>{children}</body>
+    <html lang="es" suppressHydrationWarning>
+      <body>
+        <ThemeSync />
+        <ThemeToggle />
+        {children}
+      </body>
     </html>
   );
 };

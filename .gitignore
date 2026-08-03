@@ -24,8 +24,9 @@ yarn-error.*
 
 # backend
 backend/dist/
-backend/src/coverage/
 backend/node_modules/
+
+**/coverage
 
 # frontend
 frontend/.next/
