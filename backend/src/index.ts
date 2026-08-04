@@ -15,6 +15,9 @@ export const startServer = async (): Promise<void> => {
   }
 };
 
+/* istanbul ignore next -- guardia de entry point: solo es `true` cuando el archivo corre como
+   proceso principal (`node dist/index.js`); bajo test siempre se importa como módulo, así que la
+   rama `true` no es alcanzable sin spawnear un proceso real (lento y no determinístico aquí). */
 if (require.main === module) {
   void startServer();
 }

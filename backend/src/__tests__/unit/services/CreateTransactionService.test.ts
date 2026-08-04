@@ -24,10 +24,6 @@ class FakeTransactionRepository implements ITransactionRepository {
     return Promise.resolve(transaction);
   }
 
-  findById(id: string): Promise<Transaction | null> {
-    return Promise.resolve(this.store.get(id) ?? null);
-  }
-
   deleteById(id: string): Promise<void> {
     this.store.delete(id);
     return Promise.resolve();

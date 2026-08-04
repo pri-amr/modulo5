@@ -8,6 +8,7 @@
     ],
     "module": "esnext",
     "moduleResolution": "bundler",
+    "ignoreDeprecations": "6.0",
     "jsx": "react-jsx",
     "strict": true,
     "esModuleInterop": true,

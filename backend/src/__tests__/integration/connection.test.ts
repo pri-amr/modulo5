@@ -25,4 +25,10 @@ describe('connectDB (integración contra Mongo real)', () => {
     await expect(connectDB()).rejects.toThrow();
     expect(mongoose.connection.readyState).not.toBe(1);
   });
+
+  it('lanza un error explícito si MONGODB_URI no está definida', async () => {
+    delete process.env.MONGODB_URI;
+
+    await expect(connectDB()).rejects.toThrow('MONGODB_URI environment variable is not defined');
+  });
 });

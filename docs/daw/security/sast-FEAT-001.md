@@ -97,3 +97,40 @@ aceptación ya documentado ahí.
 **Total: 24 categorías revisadas, 0 vulnerabilidades abiertas (1 High backend + 5 
 High/Moderate frontend encontradas y corregidas), 2 informational cross-referenciadas a R1**
 **Next:** `gates.sast = true` → transición a VERIFY
+
+---
+
+## Ronda 2 — bloque correctivo post-VERIFY (2026-08-04)
+
+Escaneo acotado a los archivos tocados por el bloque correctivo que resolvió los 3 FAIL de
+`docs/daw/reports/verify-FEAT-001.md` (cobertura de branches del backend, `tsc --noEmit` en
+frontend, evidencia TDD): 4 tests de integración nuevos (`TransactionRepository`,
+`MoneySourceRepository`, `CategoryRepository`, `resolveSeedUser`), la eliminación de
+`findById` en `ITransactionRepository`/`TransactionRepository`, `index.ts` (guard
+`require.main`) y `frontend/tsconfig.json`.
+
+### Secretos (F-SAST-01)
+- ✅ Sin API keys, passwords, tokens ni connection strings hardcodeados en los archivos nuevos o
+  modificados (grep dedicado, incluyendo los tests de integración contra Mongo real).
+
+### Inyección (F-SAST-02, F-SAST-03, F-SAST-05)
+- ✅ Los 4 repositorios tocados (`TransactionRepository`, `MoneySourceRepository`,
+  `CategoryRepository`) mantienen el guard `Types.ObjectId.isValid(id)` antes de cualquier query
+  con `id` de entrada.
+- ✅ Sin `eval`, `exec`, `child_process` en ningún archivo nuevo o modificado.
+
+### XSS y funciones inseguras (F-SAST-04, F-SAST-06, F-SAST-08)
+- ✅ N/A — ningún archivo de este bloque toca UI ni manejo de HTML.
+
+### Dependencias (F-SAST-13, F-SAST-16)
+- ✅ No se agregó ninguna dependencia nueva en este bloque (solo tests, tipos, config).
+  `pnpm audit --prod` re-corrido en ambos paquetes → **0 vulnerabilidades** (backend y frontend).
+
+### Suppressions
+Ninguna nueva.
+
+---
+
+**Ronda 2 — Total: 4 categorías relevantes revisadas, 0 vulnerabilidades. Sin cambios sobre
+los hallazgos informational de CORS/CSRF de la Ronda 1 (R1, ya aceptado).**
+**Next:** `gates.sast = true` (re-confirmado) → transición a VERIFY

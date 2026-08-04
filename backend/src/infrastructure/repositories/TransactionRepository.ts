@@ -7,6 +7,10 @@ import type {
 } from '../../domain/repositories/ITransactionRepository';
 import { TransactionModel, type TransactionDocument } from '../models/TransactionModel';
 
+// `findById` no se declara: hoy no existe ningún endpoint GET que lo requiera (ver spec-FEAT-001),
+// así que no se agrega superficie sin consumidor. Si un futuro ticket necesita leer una
+// transacción por id, se agrega junto con su caso de uso real.
+
 const toEntity = (document: TransactionDocument): Transaction => ({
   id: document._id.toString(),
   userId: document.userId.toString(),
@@ -35,15 +39,6 @@ export class TransactionRepository implements ITransactionRepository {
     });
 
     return toEntity(document);
-  }
-
-  async findById(id: string): Promise<Transaction | null> {
-    if (!Types.ObjectId.isValid(id)) {
-      return null;
-    }
-
-    const document = await TransactionModel.findById(id);
-    return document ? toEntity(document) : null;
   }
 
   async deleteById(id: string): Promise<void> {

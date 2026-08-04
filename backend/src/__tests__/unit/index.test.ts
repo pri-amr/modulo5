@@ -44,4 +44,22 @@ describe('startServer', () => {
     expect(processExitSpy).not.toHaveBeenCalled();
     expect(consoleErrorSpy).not.toHaveBeenCalled();
   });
+
+  it('loguea el puerto una vez que el servidor queda efectivamente escuchando', async () => {
+    const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
+    (connectDB as jest.Mock).mockResolvedValueOnce(undefined);
+    (app.listen as jest.Mock).mockImplementationOnce(
+      (_port: number | string, onListening: () => void) => {
+        onListening();
+        return app;
+      },
+    );
+
+    const { startServer } = await import('../../index');
+    await startServer();
+
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Server listening on port'));
+
+    consoleLogSpy.mockRestore();
+  });
 });

@@ -13,6 +13,5 @@ export interface CreateTransactionInput {
 
 export interface ITransactionRepository {
   create(input: CreateTransactionInput): Promise<Transaction>;
-  findById(id: string): Promise<Transaction | null>;
   deleteById(id: string): Promise<void>;
 }
