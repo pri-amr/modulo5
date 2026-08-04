@@ -14,10 +14,13 @@ export const useThemeStore = create<ThemeStore>()(
   persist(
     (set): ThemeStore => ({
       theme: "dark",
-      toggleTheme: (): void =>
-        set((state) => ({ theme: state.theme === "dark" ? "light" : "dark" })),
+      toggleTheme: (): void => {
+        set((state) => ({ theme: state.theme === "dark" ? "light" : "dark" }));
+      },
       hasHydrated: false,
-      setHasHydrated: (value: boolean): void => set({ hasHydrated: value }),
+      setHasHydrated: (value: boolean): void => {
+        set({ hasHydrated: value });
+      },
     }),
     {
       name: "theme-preference",
