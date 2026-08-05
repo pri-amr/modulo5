@@ -167,6 +167,14 @@ wrong once.
 - Nunca exponer tokens del lado del cliente.
 - Nunca confiar en datos del store sin validar.
 - `dangerouslySetInnerHTML` está prohibido.
+- No dejar que el reporte de cierre de un `daw-implementer` (evidencia TDD: qué test y qué
+  aserción fallaban antes del fix) se pierda como intercambio efímero entre subagente y
+  orquestador. Persistirlo — anexado al mensaje de commit del bloque, o en
+  `docs/daw/reports/tdd-evidence-{ticket}.md` — antes de cerrar el bloque. En FEAT-001, los 7
+  reportes de bloque nunca se guardaron en disco; para cuando VERIFY los pidió (sesiones después),
+  ya no había forma honesta de reconstruirlos sin inventar el dato (~40 tests quedaron sin
+  evidencia recuperable, aceptado como riesgo de proceso — ver
+  `docs/daw/reports/tdd-evidence-FEAT-001.md`).
 
 ---
 
