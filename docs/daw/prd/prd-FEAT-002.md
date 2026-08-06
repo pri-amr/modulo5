@@ -5,13 +5,13 @@
 | Ticket | FEAT-002 |
 | Tracker | none |
 | Date | 2026-08-06 |
-| PRD loops | 1 |
+| PRD loops | 2 |
 
 ## Context and Problem
 
-FEAT-001 implementó el mecanismo de alternancia de tema (store de Zustand con `persist`, clase `.dark` aplicada al `<html>` vía `useSyncThemeClass`/`ThemeSync`, modo oscuro por defecto en la primera carga), pero ningún sistema de color real lo respalda: `globals.css` solo importa Tailwind (`@import "tailwindcss"; @config "../../tailwind.config.ts";`) sin definir ni un solo token de color, y el único color concreto de la aplicación hoy es un valor hexadecimal (`#376BCB`) fijado por estilo inline en `Loader.tsx`, al margen de Tailwind. Alternar `theme` hoy cambia una clase en el HTML sin que ningún color visible responda a ese cambio.
+FEAT-001 implementó el mecanismo de alternancia de tema (store de Zustand con `persist`, clase de tema (`light`/`dark`) aplicada al `<html>` vía `useSyncThemeClass`/`ThemeSync`, modo oscuro por defecto en la primera carga), pero ningún sistema de color real lo respalda: `globals.css` solo importa Tailwind (`@import "tailwindcss"; @config "../../tailwind.config.ts";`) sin definir ni un solo token de color, y el único color concreto de la aplicación hoy es un valor hexadecimal (`#376BCB`) fijado por estilo inline en `Loader.tsx`, al margen de Tailwind. Alternar `theme` hoy cambia una clase en el HTML sin que ningún color visible responda a ese cambio.
 
-Esta feature construye la capa de tokens semánticos de color (variables CSS en `:root`/`.dark`, expuestas como colores de Tailwind) que convierte el mecanismo ya existente en una interfaz efectivamente temizada, cumpliendo RNF-11 (modo claro/oscuro para toda la interfaz), y unifica el color del indicador de carga bajo esa misma capa en lugar de dejarlo hardcodeado, cumpliendo RNF-12.
+Esta feature construye la capa de tokens semánticos de color (variables CSS por modo, expuestas como colores de Tailwind) que convierte el mecanismo ya existente en una interfaz efectivamente temizada, cumpliendo RNF-11 (modo claro/oscuro para toda la interfaz), y unifica el color del indicador de carga bajo esa misma capa en lugar de dejarlo hardcodeado, cumpliendo RNF-12.
 
 ## Goals
 
@@ -35,7 +35,7 @@ Esta feature construye la capa de tokens semánticos de color (variables CSS en 
 - FR-11: El sistema debe exponer cada token semántico de color como un color de la paleta de Tailwind, identificado por el mismo nombre semántico sin el prefijo `color-`, de forma que un componente pueda aplicarlo con una única clase de utilidad (por ejemplo `bg-surface`) sin declarar una variante `dark:` adicional.
 - FR-12: El sistema debe aplicar el token de fondo y el token de texto principal como estilo base del elemento `body`.
 - FR-13: El sistema debe reemplazar el color hardcodeado del indicador de carga (`Loader.tsx`, valor `#376BCB` fijado por estilo inline) por el token semántico de acento secundario, sin cambiar el valor visual resultante en modo claro.
-- FR-14: El sistema debe actualizar el valor efectivo de todos los tokens semánticos de color al alternar entre modo claro y modo oscuro, sin requerir recargar la página, reutilizando el mecanismo de clase `.dark` en `<html>` ya implementado en FEAT-001.
+- FR-14: El sistema debe actualizar el valor efectivo de todos los tokens semánticos de color al alternar entre modo claro y modo oscuro, sin requerir recargar la página, reutilizando el mecanismo de clase de tema en `<html>` ya implementado en FEAT-001.
 
 ## Non-Functional Requirements
 
@@ -44,8 +44,8 @@ Esta feature construye la capa de tokens semánticos de color (variables CSS en 
 
 ## Acceptance Criteria
 
-- AC-01: WHEN se carga la aplicación en modo claro, THE system SHALL renderizar el `body` con el color de fondo y el color de texto correspondientes a los valores definidos en `:root` para `--color-bg` y `--color-fg`. (covers FR-01, FR-04, FR-12)
-- AC-02: WHEN el usuario alterna a modo oscuro, THE system SHALL renderizar el `body` con el color de fondo y el color de texto correspondientes a los valores definidos bajo la clase `.dark` para `--color-bg` y `--color-fg`. (covers FR-01, FR-04, FR-12, FR-14)
+- AC-01: WHEN se carga la aplicación en modo claro, THE system SHALL renderizar el `body` con el color de fondo y el color de texto correspondientes al token de modo claro definido para `--color-bg` y `--color-fg`. (covers FR-01, FR-04, FR-12)
+- AC-02: WHEN el usuario alterna a modo oscuro, THE system SHALL renderizar el `body` con el color de fondo y el color de texto correspondientes al token de modo oscuro definido para `--color-bg` y `--color-fg`. (covers FR-01, FR-04, FR-12, FR-14)
 - AC-03: WHEN se inspecciona el indicador de carga (`Loader`) en modo claro, THE system SHALL mostrar su color de acento con el mismo valor #376BCB que tenía antes de esta feature, obtenido ahora del token semántico en lugar de un estilo inline. (covers FR-08, FR-13, NFR-01)
 - AC-04: WHERE un componente necesita aplicar un color semántico, THE system SHALL permitir hacerlo con una única clase de utilidad de Tailwind (por ejemplo `bg-surface`, `text-fg-muted`) sin que el componente declare una variante `dark:` adicional. (covers FR-11)
 - AC-05: WHEN el usuario alterna entre modo claro y modo oscuro, THE system SHALL actualizar el valor efectivo de los 10 tokens semánticos de color (fondo, superficie, superficie atenuada, texto, texto atenuado, línea, acento, acento secundario, éxito, error) sin recargar la página. (covers FR-01, FR-02, FR-03, FR-04, FR-05, FR-06, FR-07, FR-08, FR-09, FR-10, FR-14, NFR-02)
@@ -62,11 +62,11 @@ Esta feature construye la capa de tokens semánticos de color (variables CSS en 
 
 ## Risks and Mitigations
 
-- Riesgo: el snippet de referencia entregado para esta feature usa las directivas `@tailwind base; @tailwind components; @tailwind utilities;` (sintaxis de Tailwind 3), mientras que `globals.css` ya usa la sintaxis de Tailwind 4 vigente en el proyecto (`@import "tailwindcss"; @config "../../tailwind.config.ts";`). Mitigación: la implementación debe preservar la sintaxis v4 ya configurada y agregar únicamente el bloque de tokens (`:root`/`.dark`) y la regla de `body`, sin reintroducir directivas v3.
+- Riesgo: el snippet de referencia entregado para esta feature usa las directivas `@tailwind base; @tailwind components; @tailwind utilities;` (sintaxis de Tailwind 3), mientras que `globals.css` ya usa la sintaxis de Tailwind 4 vigente en el proyecto (`@import "tailwindcss"; @config "../../tailwind.config.ts";`). Mitigación: la implementación debe preservar la sintaxis v4 ya configurada y agregar únicamente el bloque de tokens por modo y la regla de `body`, sin reintroducir directivas v3.
 - Riesgo: al exponer los tokens con el patrón `rgb(var(--x) / <alpha-value>)` de Tailwind, cualquier consumo directo de la variable CSS fuera de una clase de Tailwind (por ejemplo `style={{ color: "var(--color-fg)" }}`) produciría un color inválido, porque la variable por sí sola no es un color CSS válido (le falta la función `rgb(...)`). Mitigación: documentar en el código que las variables se consumen únicamente a través de las clases de Tailwind generadas, nunca directamente en `style`.
 - Riesgo: al reemplazar el estilo inline de `Loader.tsx`, un test existente que verifique ese estilo por atributo (`style` o `borderColor`) puede dejar de pasar aunque el color visual no cambie. Mitigación: actualizar ese test para verificar la clase de Tailwind aplicada en lugar del atributo `style`.
 
 ## Dependencies
 
-- Depende del mecanismo de alternancia de tema ya implementado en FEAT-001 (`useThemeStore`, `useSyncThemeClass`, `ThemeSync`, clase `.dark` en `<html>`) — este ticket no lo modifica, solo consume la clase que ya se aplica.
+- Depende del mecanismo de alternancia de tema ya implementado en FEAT-001 (`useThemeStore`, `useSyncThemeClass`, `ThemeSync`, clase de tema `light`/`dark` en `<html>`) — este ticket no lo modifica, solo consume la clase que ya se aplica.
 - Depende de la configuración vigente de Tailwind 4 del proyecto (`tailwind.config.ts`, `postcss.config.mjs`, la directiva `@config` en `globals.css`) — se extiende, no se reemplaza.
