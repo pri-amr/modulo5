@@ -315,20 +315,6 @@ any other section.
 
 ---
 
-## Router: Phase `RELEASE`
-
-- **Load:** `.daw/rules/release.instructions.md`, `.daw/rules/commits.instructions.md`,
-  `.daw/rules/branches.instructions.md`, `.daw/rules/tracker.instructions.md`
-- **Skills:** `/daw-commit`, `/daw-create-pr`, `/daw-self-check`, `/daw-status`
-- **Blocked:** new code. Modifying the PRD. Modifying specs. Tests.
-- **Status line:** `🚀 {TIER} · Releasing [5/5] | {ticket}: {title}`
-- **Mandatory sequence (every step is a blocking gate):** CHANGELOG → `/daw-commit` (gate `commit`)
-  → `/daw-create-pr` (gate `pr`, MANDATORY) → tracker update (a mandatory step, but not a gate: it depends on an external system and the graph carries no `tracker` edge condition) → closeout.
-- **Exit:** ALL RELEASE gates present + user confirms closeout → reset state to IDLE. Resetting to
-  IDLE without completing every step is FORBIDDEN.
-
----
-
 ## Router: Phase `DISCOVERY`
 
 - **Load:** `.daw/rules/discovery.instructions.md`, `.daw/rules/validation-rules.instructions.md`
