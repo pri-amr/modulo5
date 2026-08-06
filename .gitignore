@@ -17,9 +17,20 @@ yarn-error.*
 
 #env files
 .env*
+!.env.example
 
 # typescript
 *.tsbuildinfo
+
+# backend
+backend/dist/
+backend/node_modules/
+
+**/coverage
+
+# frontend
+frontend/.next/
+frontend/node_modules/
 
 # Claude personal settings and local notes
 .claude/settings.local.json
