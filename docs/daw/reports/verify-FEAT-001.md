@@ -158,3 +158,86 @@ El único punto abierto es documental, no de código: reconstruir o declarar hon
 evidencia TDD faltante de los 7 bloques originales y del corrective loop de ronda 1. Dado que esto
 es un juicio de alcance/proceso (¿se reconstruye lo reconstruible, se acepta como deuda de proceso,
 o se relaja la regla para este ticket?), se eleva al usuario antes de tocar código o gates.
+
+---
+
+## Ronda 3 — 2026-08-06
+
+**Insumos:** los mismos que la ronda 2, más el commit `f3f229a` (cierre documental: agrega
+`docs/daw/reports/tdd-evidence-FEAT-001.md` y refuerza la regla de persistir evidencia TDD en
+`AGENTS.md`). Protocolo completo de FEATURE corrido de cero — `npx jest --coverage` en vivo en
+ambos paquetes, `npx tsc --noEmit` en ambos, agente `daw-module-verifier` (cross-verificación, no
+escribió el código).
+
+### Trazabilidad PRD → Código → Tests (F-VER-01) y tareas del spec (F-VER-02, F-VER-06)
+
+Sin cambios respecto a la ronda 2: los 12 AC (código localizable + test que verifica comportamiento
+real, no solo status code) y los 7 bloques del spec siguen ✅. Confirmado que el ajuste correctivo
+de ronda 1 (eliminación de `TransactionRepository.findById` sin caller) sigue aplicado.
+
+### Cobertura — sin regresión
+
+| Paquete | Statements | Branches | Functions | Lines |
+|---|---|---|---|---|
+| Backend (53/53 tests, 13 suites) | 96.87% | 93.22% | 93.1% | 96.68% |
+| Frontend (21/21 tests, 9 suites) | 98.63% | 81.96% | 100% | 99.2% |
+
+Los 4 umbrales (≥80%) se cumplen en ambos paquetes. **F-VER-03: PASS**, idéntico a ronda 2.
+
+### `tsc --noEmit` — sin regresión
+
+Backend y frontend: 0 errores en ambos. **F-VER-05: PASS** en el único gate accionable de esa
+regla (no hay linter configurado en ningún paquete — persiste como WARNING, no bloqueante, igual
+que en rondas 1 y 2).
+
+### El único FAIL de la ronda 2 — juicio explícito de degradación a WARNING
+
+**❌→⚠️ Evidencia TDD ausente para los 7 bloques originales (~40 tests).** El verificador evaluó
+si, dado que el gap ya está documentado honestamente (no fabricado) en
+`docs/daw/reports/tdd-evidence-FEAT-001.md`, corresponde tratarlo como FAIL bloqueante indefinido o
+como riesgo de proceso aceptado. Su criterio, con el que el orquestador concuerda:
+
+1. **No es un hallazgo nuevo que admita una acción correctiva distinta.** El corrective loop que el
+   protocolo pide (documentar honestamente cuando el dato es irrecuperable) ya se corrió. Repetir
+   CODE→VERIFY no puede producir una evidencia distinta porque el dato ya no existe — mantenerlo en
+   FAIL convierte el gate en un bucle sin salida, no en una señal accionable.
+2. **No se fabricó evidencia.** El documento distingue explícitamente qué se pudo reconstruir (13
+   tests del corrective loop de ronda 1, con mutación quirúrgica verificada contra el diff real) de
+   qué no (los ~40 tests de los 7 bloques originales) — exactamente lo que la Regla #-1 de
+   `testing.instructions.md` busca prevenir que se salte por atajo.
+3. **Corrección sistémica, no solo declarativa.** El commit `f3f229a` agrega una regla nueva a
+   `AGENTS.md` para que este gap de proceso (reportes de cierre de bloque nunca persistidos en
+   disco) no se repita en futuros tickets — causa raíz corregida, no una promesa vacía.
+4. **Verificación independiente de esta ronda reduce el riesgo residual.** El verificador revisó
+   directamente los ~40 tests sin evidencia TDD y confirma que ejercitan comportamiento real
+   (mutación de balance persistida en Mongo, valores del DOM, clases de tema aplicadas) y no son
+   aserciones tautológicas. Esto no prueba que fueron escritos antes del código (irrecuperable),
+   pero acota la probabilidad de que el riesgo que la Regla #-1 busca prevenir se haya
+   materializado.
+
+Se trata como riesgo de proceso aceptado — mismo tratamiento que los 2 riesgos aceptados en
+`docs/daw/security/threat-FEAT-001.md` durante PLAN —, no como defecto de producto abierto.
+**Condición explícita del verificador:** debe quedar reflejado en el CHANGELOG/PR de RELEASE como
+riesgo de proceso aceptado, no cerrado en silencio.
+
+### Tests y calidad — resto
+
+- Backend: 53/53 tests en verde. Frontend: 21/21 tests en verde.
+- Sad paths (F-VER-04): ✅ sin cambios respecto a rondas anteriores, cubiertos en las 3 capas.
+- Sin código muerto (W-VER-01): ✅ confirmado manualmente (`NotFoundError`, `InvariantError` con
+  caller real; `noUnusedLocals`/`noUnusedParameters` activos y `tsc` limpio en ambos paquetes).
+- Sin tests frágiles (W-VER-03): ✅.
+- Ramas defensivas sin ejercitar en lógica de negocio central (W-VER-02, de ronda 2): persisten sin
+  bloquear el agregado del paquete — `TransactionController.ts` guard `!req.userId` (branch 50%,
+  no alcanzable mientras `resolveSeedUser` sea el único middleware previo) y
+  `useCreateTransaction.ts` rama `!value` de `isRealDate` (branch 72.41%, no ejercitada porque Yup
+  garantiza string).
+
+### Veredicto: **PASSED**
+
+FAILs: 0 | WARNs: 2 (lint no configurado en ningún paquete; evidencia TDD irrecuperable para ~40
+tests de los bloques 1-7, degradada de FAIL a WARNING con la justificación de arriba) | PASSes: 26
+
+`gates.verify` → `true`. El módulo avanza a RELEASE. Ambos WARNINGs quedan pendientes de
+registrarse explícitamente en el CHANGELOG/PR como riesgos aceptados, igual que los del threat
+model.
