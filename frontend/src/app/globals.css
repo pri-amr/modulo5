@@ -1,2 +1,35 @@
 @import "tailwindcss";
 @config "../../tailwind.config.ts";
+
+/* Tokens semánticos de color (RGB, sin unidad, para el patrón `rgb(var(--x) / <alpha-value>)`
+   de Tailwind — ver tailwind.config.ts). :root define el modo oscuro (default de la app, RNF-11);
+   .light lo sobreescribe. Estos valores son la única fuente de verdad para los colores de la app. */
+:root {
+  --color-bg: 11 11 18; /* #0B0B12 */
+  --color-surface: 23 22 31; /* #17161F */
+  --color-surface-muted: 32 30 43; /* #201E2B */
+  --color-fg: 245 245 247; /* #F5F5F7 */
+  --color-fg-muted: 160 163 177; /* #A0A3B1 */
+  --color-line: 42 40 54; /* #2A2836 */
+  --color-accent: 155 123 250; /* #9B7BFA violeta/lila */
+  --color-accent-blue: 110 168 255; /* #6EA8FF azul/celeste */
+  --color-success: 125 209 129; /* #7DD181 */
+  --color-error: 255 82 82; /* #FF5252 */
+}
+
+.light {
+  --color-bg: 255 255 255; /* #FFFFFF */
+  --color-surface: 255 255 255; /* #FFFFFF */
+  --color-surface-muted: 243 242 250; /* #F3F2FA */
+  --color-fg: 17 17 20; /* #111114 */
+  --color-fg-muted: 107 114 128; /* #6B7280 */
+  --color-line: 226 228 234; /* #E2E4EA */
+  --color-accent: 124 58 237; /* #7C3AED violeta/lila */
+  --color-accent-blue: 55 107 203; /* #376BCB azul/celeste, mismo tono que el Loader (RNF-12) */
+  --color-success: 30 142 62; /* #1E8E3E */
+  --color-error: 220 38 38; /* #DC2626 */
+}
+
+body {
+  @apply bg-bg text-fg;
+}
