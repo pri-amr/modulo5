@@ -11,8 +11,7 @@ const Loader = ({ visible }: LoaderProps): React.JSX.Element | null => {
     <div
       role="status"
       aria-label="Cargando"
-      className="h-8 w-8 animate-spin rounded-full border-4"
-      style={{ borderColor: "#376BCB", borderTopColor: "transparent" }}
+      className="h-8 w-8 animate-spin rounded-full border-4 border-accent-blue border-t-transparent"
     />
   );
 };

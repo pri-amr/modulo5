@@ -14,4 +14,16 @@ describe("Loader", () => {
 
     expect(container).toBeEmptyDOMElement();
   });
+
+  it("no tiene atributo style", () => {
+    render(<Loader visible />);
+
+    expect(screen.getByRole("status")).not.toHaveAttribute("style");
+  });
+
+  it("aplica la clase del token de acento", () => {
+    render(<Loader visible />);
+
+    expect(screen.getByRole("status")).toHaveClass("border-accent-blue");
+  });
 });
