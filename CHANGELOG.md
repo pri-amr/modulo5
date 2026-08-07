@@ -14,3 +14,6 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 - [FEAT-001] Bootstrap del frontend con Next.js 16 y Tailwind 4.
 - [FEAT-001] Tema claro/oscuro con persistencia (Zustand + `persist`), sincronización SSR-safe y
   modo oscuro por defecto.
+- [FEAT-002] Tokens semánticos de color respaldados por variables CSS (`globals.css`, `:root` en
+  modo oscuro por defecto / `.light` como override) expuestos como paleta de Tailwind, y migración
+  del indicador de carga al token de acento en lugar de un color hardcodeado.
