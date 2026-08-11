@@ -2,6 +2,9 @@
 
 import { useThemeStore } from "@/contexts/useThemeStore";
 
+const TOGGLE_BUTTON_CLASSNAME =
+  "fixed right-4 top-4 z-50 flex h-10 w-10 items-center justify-center rounded-full bg-surface-muted text-fg shadow hover:bg-accent-blue hover:text-white";
+
 const ThemeToggle = (): React.JSX.Element => {
   const theme = useThemeStore((state) => state.theme);
   const toggleTheme = useThemeStore((state) => state.toggleTheme);
@@ -13,7 +16,12 @@ const ThemeToggle = (): React.JSX.Element => {
   // hidratación real.
   if (!hasHydrated) {
     return (
-      <button type="button" disabled aria-label="Cargando preferencia de tema">
+      <button
+        type="button"
+        disabled
+        aria-label="Cargando preferencia de tema"
+        className={TOGGLE_BUTTON_CLASSNAME}
+      >
         {" "}
       </button>
     );
@@ -22,7 +30,12 @@ const ThemeToggle = (): React.JSX.Element => {
   const label = theme === "dark" ? "Cambiar a modo claro" : "Cambiar a modo oscuro";
 
   return (
-    <button type="button" onClick={toggleTheme} aria-label={label}>
+    <button
+      type="button"
+      onClick={toggleTheme}
+      aria-label={label}
+      className={TOGGLE_BUTTON_CLASSNAME}
+    >
       {theme === "dark" ? "🌙" : "☀️"}
     </button>
   );
