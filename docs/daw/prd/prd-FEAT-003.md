@@ -5,7 +5,7 @@
 | Ticket | FEAT-003 |
 | Tracker | none |
 | Date | 2026-08-08 |
-| PRD loops | 0 |
+| PRD loops | 1 |
 
 ## Context and Problem
 
@@ -64,6 +64,10 @@ de tema.
   `rounded-field bg-accent px-4 py-2 text-white hover:bg-accent-blue disabled:opacity-50`.
 - FR-09: El sistema no debe modificar ningún token semántico definido en `globals.css` o
   `tailwind.config.ts` (los 10 tokens de FEAT-002 permanecen sin cambios).
+- FR-10: El sistema debe reemplazar el `<textarea>` del campo Descripción de `TransactionForm` por un
+  `<input type="text">`, preservando su comportamiento actual (mismo `id="description"`, mismo
+  `onChange={handleChange("description")}`, mismo `disabled={loading}`, mismo `value={values.description}`)
+  — es un cambio de elemento HTML, no de la lógica de datos del formulario.
 
 ## Non-Functional Requirements
 
@@ -100,6 +104,9 @@ de tema.
   `layout.tsx` después de este cambio, THEN THE system SHALL seguir pasando sin que ningún test deba
   relajar sus aserciones de comportamiento (solo pueden actualizarse aserciones que verificaban la
   ausencia previa de clases, si existieran). (covers FR-01 a FR-08)
+- AC-09: WHEN se inspecciona el campo Descripción de `TransactionForm`, THE system SHALL renderizarlo
+  como un `<input type="text">` (no `<textarea>`), con las mismas clases de FR-05 que el resto de los
+  inputs. (covers FR-10)
 
 ## Out of Scope
 
@@ -125,6 +132,12 @@ de tema.
   existentes de `TransactionForm.test.tsx` que no esperan esas clases. Mitigación: los tests deben
   actualizarse para reflejar el nuevo comportamiento (cubierto por AC-08), sin relajar ninguna
   aserción de comportamiento funcional.
+- Riesgo: el cambio de `<textarea>` a `<input type="text">` en el campo Descripción (FR-10) puede
+  romper algún test existente que use `getByRole("textbox")` o cualquier selector que dependa
+  implícitamente del tag `textarea` (ambos tags comparten el rol accesible `textbox`, por lo que la
+  mayoría de los selectores por rol no deberían verse afectados, pero hay que revisarlo puntualmente
+  en la fase CODE). Mitigación: verificar en PLAN/CODE si `TransactionForm.test.tsx` referencia este
+  campo de forma dependiente del tag, y ajustar si corresponde, cubierto por AC-08/AC-09.
 - Riesgo: agregar `className="dark"` estático a `<html>` en paralelo con `useSyncThemeClass` (que
   agrega/remueve `light`/`dark` dinámicamente tras la hidratación) podría producir una clase
   duplicada o un estado inconsistente si no se revisa la interacción entre ambos. Mitigación: la fase
