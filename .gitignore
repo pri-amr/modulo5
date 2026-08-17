@@ -36,6 +36,10 @@ frontend/node_modules/
 .claude/settings.local.json
 CLAUDE.local.md
 
+# Python bytecode cache (.daw/scripts/*.py get imported by hooks on every write)
+__pycache__/
+*.pyc
+
 # BEGIN DAW — pipeline runtime, NOT committed (managed by DAW)
 #   .daw-state.json  = which phase you are in; yours, not the repo's
 #   .daw-paused/     = paused tickets
