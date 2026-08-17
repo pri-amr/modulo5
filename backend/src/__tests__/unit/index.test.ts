@@ -63,3 +63,24 @@ describe('startServer', () => {
     consoleLogSpy.mockRestore();
   });
 });
+
+describe('carga de variables de entorno', () => {
+  const originalUri = process.env.MONGODB_URI;
+
+  afterEach(() => {
+    if (originalUri === undefined) {
+      delete process.env.MONGODB_URI;
+    } else {
+      process.env.MONGODB_URI = originalUri;
+    }
+  });
+
+  it('carga MONGODB_URI desde .env al importar el entry point', async () => {
+    delete process.env.MONGODB_URI;
+    jest.resetModules();
+
+    await import('../../index');
+
+    expect(process.env.MONGODB_URI).toBeDefined();
+  });
+});
