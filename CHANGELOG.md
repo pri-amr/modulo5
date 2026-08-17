@@ -27,3 +27,5 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 - [FEAT-003] Vulnerabilidad High de dependencias (`nanoid <3.3.18`, GHSA-2v37-7h3g-55p8) en el
   frontend, corregida vía override de pnpm.
+- [FIX-002] Tests de integración del backend fallando por timeout de arranque de `mongod`
+  (`mongodb-memory-server`); se sube el `launchTimeout` a 30000ms en `testDatabase.ts`.
