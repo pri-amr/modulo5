@@ -17,10 +17,36 @@ yarn-error.*
 
 #env files
 .env*
+!.env.example
 
 # typescript
 *.tsbuildinfo
 
+# backend
+backend/dist/
+backend/node_modules/
+
+**/coverage
+
+# frontend
+frontend/.next/
+frontend/node_modules/
+
 # Claude personal settings and local notes
 .claude/settings.local.json
 CLAUDE.local.md
+
+# Python bytecode cache (.daw/scripts/*.py get imported by hooks on every write)
+__pycache__/
+*.pyc
+
+# BEGIN DAW — pipeline runtime, NOT committed (managed by DAW)
+#   .daw-state.json  = which phase you are in; yours, not the repo's
+#   .daw-paused/     = paused tickets
+#   .daw-sessions/   = live session markers
+#   .daw-journal.jsonl = transitions that landed; outlives the state file
+.daw-state.json
+.daw-paused/
+.daw-sessions/
+.daw-journal.jsonl
+# END DAW
