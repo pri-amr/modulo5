@@ -1,0 +1,6 @@
+# Fix FIX-001: Cargar variables de entorno con dotenv en el arranque del backend
+
+- **Bug**: `process.env.MONGODB_URI` queda `undefined` al arrancar el backend aunque `.env` la defina, porque ningún archivo del backend invoca `dotenv.config()` (ni un equivalente) — `backend/src/infrastructure/database/connection.ts:4` lee `process.env.MONGODB_URI` antes de que nada la haya cargado, y `connectDB()` lanza `MONGODB_URI environment variable is not defined`.
+- **Change**: `backend/src/index.ts:1` — agregar `import 'dotenv/config';` como primera línea del archivo, antes de cualquier otro import, para poblar `process.env` desde `.env` antes de que `connectDB()` lo lea.
+- **Regression test**: `backend/src/__tests__/unit/index.test.ts` — nuevo test `"carga MONGODB_URI desde .env al importar el entry point"` que borra `process.env.MONGODB_URI`, resetea los módulos (`jest.resetModules()`) y reimporta `index.ts`, verificando que la variable vuelve a estar definida. Falla antes del fix (queda `undefined`) y pasa después.
+- **Risk**: none — `dotenv` ya es una dependencia declarada (`package.json`) pero nunca importada; el cambio solo agrega el side-effect de carga al inicio del entry point y no altera ningún test existente, porque `dotenv` no sobreescribe variables que el proceso ya tenga definidas.
