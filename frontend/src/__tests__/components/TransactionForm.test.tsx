@@ -243,4 +243,120 @@ describe("TransactionForm", () => {
 
     await waitFor(() => expect(screen.queryByRole("status")).not.toBeInTheDocument());
   });
+
+  it("sin errores, los 7 campos tienen border-line y no border-error (AC-04)", () => {
+    renderForm();
+
+    const fields = [
+      screen.getByLabelText("Tipo"),
+      screen.getByLabelText("Monto"),
+      screen.getByLabelText("Fuente de dinero"),
+      screen.getByLabelText("Moneda"),
+      screen.getByLabelText("Categoría"),
+      screen.getByLabelText("Fecha (DD-MM-YYYY)"),
+      screen.getByLabelText("Descripción"),
+    ];
+
+    fields.forEach((field) => {
+      expect(field).toHaveClass("border-line");
+      expect(field).not.toHaveClass("border-error");
+    });
+  });
+
+  it("tras un submit inválido, los campos con error tienen border-error y no border-line (AC-05)", async () => {
+    renderForm();
+    fillForm({ amount: "", moneySourceId: "", currency: "", categoryId: "", date: "", description: "" });
+    submitForm();
+
+    await waitFor(() => expect(screen.getByLabelText("Monto")).toHaveClass("border-error"));
+
+    const fieldsWithError = [
+      screen.getByLabelText("Monto"),
+      screen.getByLabelText("Fuente de dinero"),
+      screen.getByLabelText("Moneda"),
+      screen.getByLabelText("Categoría"),
+      screen.getByLabelText("Fecha (DD-MM-YYYY)"),
+      screen.getByLabelText("Descripción"),
+    ];
+
+    fieldsWithError.forEach((field) => {
+      expect(field).toHaveClass("border-error");
+      expect(field).not.toHaveClass("border-line");
+    });
+
+    expect(screen.getByLabelText("Tipo")).toHaveClass("border-line");
+    expect(screen.getByLabelText("Tipo")).not.toHaveClass("border-error");
+  });
+
+  it("labels y textos de error de campo tienen las clases correctas (AC-06)", async () => {
+    renderForm();
+
+    const labels = [
+      "Tipo",
+      "Monto",
+      "Fuente de dinero",
+      "Moneda",
+      "Categoría",
+      "Fecha (DD-MM-YYYY)",
+      "Descripción",
+    ];
+
+    labels.forEach((text) => {
+      expect(screen.getByText(text)).toHaveClass("block", "text-sm", "font-medium");
+    });
+
+    fillForm({ amount: "" });
+    submitForm();
+
+    const errorMessage = await screen.findByText("El monto es requerido");
+    expect(errorMessage).toHaveClass("mt-1", "text-sm", "text-error");
+  });
+
+  it("el botón de submit tiene bg-accent y disabled:opacity-50 en su clase, y se deshabilita mientras loading=true (AC-07)", async () => {
+    let resolveRequest: (() => void) | undefined;
+    mockedCreateTransaction.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveRequest = (): void =>
+            resolve({
+              id: "tx-4",
+              type: "egreso",
+              amount: 100,
+              moneySourceId: "money-source-test-id",
+              currency: "ARS",
+              categoryId: "category-test-id",
+              date: "02-08-2026",
+              description: "Supermercado",
+              createdAt: "2026-08-02T00:00:00.000Z",
+            });
+        }),
+    );
+
+    renderForm();
+    fillForm();
+
+    const button = screen.getByRole("button", { name: "Confirmar" }) as HTMLButtonElement;
+    expect(button).toHaveClass("bg-accent");
+    expect(button).toHaveClass("disabled:opacity-50");
+    expect(button.disabled).toBe(false);
+
+    submitForm();
+
+    await waitFor(() => expect(button.disabled).toBe(true));
+
+    await act(async () => {
+      resolveRequest?.();
+      await Promise.resolve();
+    });
+
+    await waitFor(() => expect(button.disabled).toBe(false));
+  });
+
+  it("el campo Descripción se renderiza como <input type=\"text\"> (AC-09)", () => {
+    renderForm();
+
+    const description = screen.getByLabelText("Descripción") as HTMLInputElement;
+    expect(description.tagName).toBe("INPUT");
+    expect(description.type).toBe("text");
+  });
 });

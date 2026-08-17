@@ -16,7 +16,7 @@ type RootLayoutProps = {
 
 const RootLayout = ({ children }: RootLayoutProps): React.JSX.Element => {
   return (
-    <html lang="es" suppressHydrationWarning>
+    <html lang="es" suppressHydrationWarning className="dark">
       <body>
         <ThemeSync />
         <ThemeToggle />

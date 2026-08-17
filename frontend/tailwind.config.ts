@@ -17,6 +17,9 @@ const config: Config = {
         success: "rgb(var(--color-success) / <alpha-value>)",
         error: "rgb(var(--color-error) / <alpha-value>)",
       },
+      borderRadius: {
+        field: "0.375rem",
+      },
     },
   },
 };
