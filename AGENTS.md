@@ -28,6 +28,7 @@ Aplicación web de finanzas personales para usuarios argentinos. Centraliza el r
 | Database | MongoDB |
 | Test runner | JEST |
 | Linter / formatter | ESLint + Prettier |
+| Typecheck | `tsc --noEmit` (backend y frontend, ambos con `strict: true`) |
 | Package manager | pnpm |
 | CSS | Tailwind 4 |
 | Requests | axios |
