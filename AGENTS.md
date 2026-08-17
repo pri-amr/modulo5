@@ -153,6 +153,8 @@ variant: "primary" | "secondary"
 - Páginas server que importan dinámicamente componentes client.
 - Sanitizar inputs incluso cuando Yup ya valida la forma.
 - Validar todos los inputs en rutas de API / server actions.
+- Para construir código frontend, usa las skills `/frontend-design`, `senior-architect` y `senior-frontend`.
+- Para construir código backend, usa la skill `/create-module`.
 
 ---
 
