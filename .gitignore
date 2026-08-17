@@ -39,3 +39,13 @@ CLAUDE.local.md
 # Python bytecode cache
 __pycache__/
 *.pyc
+
+# DAW/DDW pipeline runtime — yours, not the repo's
+.daw-state.json
+.daw-paused/
+.daw-sessions/
+.daw-journal.jsonl
+.ddw-state.json
+.ddw-paused/
+.ddw-sessions/
+.ddw-journal.jsonl
