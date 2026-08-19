@@ -1,0 +1,4 @@
+frontend/.next/
+frontend/coverage/
+backend/dist/
+**/coverage
