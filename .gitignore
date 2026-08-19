@@ -49,3 +49,4 @@ __pycache__/
 .ddw-paused/
 .ddw-sessions/
 .ddw-journal.jsonl
+.ddw/**/__pycache__/
