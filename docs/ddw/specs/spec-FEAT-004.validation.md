@@ -14,7 +14,7 @@
   ✅ F-SPEC-10: every block documents its error handling
   ✅ F-SPEC-16: every documented error is named by a test
   ✅ F-SPEC-11: dependencies between blocks are declared
-  ⚠️ W-SPEC-02: large block, consider splitting: Block 3 (ESLint frontend (Next.js/React/TypeScript)) (2 files, 636 words)
+  ⚠️ W-SPEC-02: large block, consider splitting: Block 3 (ESLint frontend (Next.js/React/TypeScript)) (2 files, 672 words)
   ⚠️ W-SPEC-03: schema changes with no rollback or reverse-migration consideration
   👁  F-SPEC-12 (contradicts the PRD) and F-SPEC-13 (terminology diverging from
       the PRD) are MANUAL: judge them and say so explicitly in your report.

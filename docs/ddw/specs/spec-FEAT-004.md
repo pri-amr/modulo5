@@ -81,7 +81,9 @@ N/A — no procesa input de usuario.
 - Un archivo con sintaxis inválida: Prettier reporta el error de parseo y sale con código distinto
   de cero; no reescribe el archivo. No requiere manejo adicional en este ticket.
 
-**Required tests**
+**Required tests** (verificación manual, no automatizada — `.prettierrc.json`/`.prettierignore` son
+archivos de configuración del repo, no código de la aplicación; decisión del usuario. Evidencia de
+la corrida en `docs/ddw/reports/tdd-evidence-FEAT-004.md`)
 - [ ] `pnpm format` en `backend/` reescribe un archivo de prueba con indentación de 2 espacios a 4 — valida AC-01
 - [ ] `pnpm format` en `frontend/` reescribe un archivo de prueba con indentación de 2 espacios a 4 — valida AC-01
 - [ ] `pnpm format` sobre un array/objeto multilínea no agrega coma final al último elemento — valida AC-02
@@ -90,7 +92,8 @@ N/A — no procesa input de usuario.
       archivo — valida el manejo de error documentado arriba
 
 **Completion criterion**
-`pnpm format` corre sin error en `backend/` y en `frontend/`, y los 4 tests de este bloque pasan.
+`pnpm format` corre sin error en `backend/` y en `frontend/`, y los 4 puntos de verificación manual
+de este bloque quedan documentados en `docs/ddw/reports/tdd-evidence-FEAT-004.md`.
 
 ## Block 2 — ESLint backend (Node/Express/TypeScript)
 
@@ -149,7 +152,9 @@ N/A.
   estos 4 paquetes: si eso pasa, CODE se detiene y lo reporta antes de aprobar nada (mitigación de
   R-01 del threat model — ninguno de los 4 debería pedirlo, pero se verifica en vez de asumir).
 
-**Required tests**
+**Required tests** (verificación manual, no automatizada — `eslint.config.mjs` es un archivo de
+configuración del repo, no código de la aplicación; decisión del usuario. Evidencia de la corrida
+en `docs/ddw/reports/tdd-evidence-FEAT-004.md`)
 - [ ] Un archivo `.ts` con una variable tipada `any` hace fallar `pnpm lint` (exit code ≠ 0) — valida AC-03
 - [ ] Un archivo `.ts` con imports en un orden distinto de builtin→external→internal, o sin orden
       alfabético dentro de un grupo, hace fallar `pnpm lint` — valida AC-04
@@ -162,8 +167,9 @@ N/A.
       valida el manejo de error documentado arriba
 
 **Completion criterion**
-`pnpm lint` corre en `backend/` y reporta correctamente errores para los 3 casos de prueba
-anteriores; los 5 tests de este bloque pasan.
+`pnpm lint` corre en `backend/` y reporta correctamente errores para los casos de verificación
+manual anteriores; los 5 puntos de este bloque quedan documentados en
+`docs/ddw/reports/tdd-evidence-FEAT-004.md`.
 
 ## Block 3 — ESLint frontend (Next.js/React/TypeScript)
 
@@ -234,7 +240,9 @@ N/A.
 **Error handling**
 - Misma verificación de build nuevo en `pnpm install` que en Block 2 (mitigación de R-01).
 
-**Required tests**
+**Required tests** (verificación manual, no automatizada — `eslint.config.mjs` es un archivo de
+configuración del repo, no código de la aplicación; decisión del usuario. Evidencia de la corrida
+en `docs/ddw/reports/tdd-evidence-FEAT-004.md`)
 - [ ] Un archivo `.tsx` con una variable tipada `any` hace fallar `pnpm lint` — valida AC-03
 - [ ] Un archivo con imports desordenados, incluyendo un import con alias `@/...` mezclado fuera de
       orden, hace fallar `pnpm lint` y el alias se clasifica como grupo local/internal (usar un
@@ -249,12 +257,12 @@ N/A.
       valida AC-08 (mitad frontend)
 - [ ] Falla el bloque (se detiene y se reporta) si `pnpm install` en `frontend/` pide aprobar un
       build nuevo para `eslint`, `eslint-config-next`, `eslint-plugin-import` o
-      `eslint-import-resolver-typescript` —
-      valida el manejo de error documentado arriba
+      `eslint-import-resolver-typescript` — valida el manejo de error documentado arriba
 
 **Completion criterion**
-`pnpm lint` corre en `frontend/` y reporta correctamente errores para los 5 casos de prueba
-anteriores; los 7 tests de este bloque pasan.
+`pnpm lint` corre en `frontend/` y reporta correctamente errores para los casos de verificación
+manual anteriores; los 7 puntos de este bloque quedan documentados en
+`docs/ddw/reports/tdd-evidence-FEAT-004.md`.
 
 ## Final verification
 - `pnpm lint` y `pnpm format` corren sin errores de configuración (más allá de los hallazgos reales
@@ -263,6 +271,7 @@ anteriores; los 7 tests de este bloque pasan.
 - Ningún archivo dentro de `backend/src/` ni `frontend/src/` quedó modificado más allá de lo que el
   propio `pnpm format`/`pnpm lint --fix` haría — este ticket no migra código existente (Out of
   Scope del PRD).
-- Los 8 AC del PRD (AC-01 a AC-08) están cubiertos por al menos un test de los 3 bloques.
+- Los 8 AC del PRD (AC-01 a AC-08) están cubiertos por al menos un punto de verificación manual de
+  los 3 bloques, documentado en `docs/ddw/reports/tdd-evidence-FEAT-004.md`.
 - El threat model (`docs/ddw/security/threat-FEAT-004.md`) queda validado contra este spec antes de
   pasar a CODE.
