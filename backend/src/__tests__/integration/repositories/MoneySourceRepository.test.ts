@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 
 import { InvariantError } from '../../../application/errors/InvariantError';
-import { MoneySourceRepository } from '../../../infrastructure/repositories/MoneySourceRepository';
 import { MoneySourceModel } from '../../../infrastructure/models/MoneySourceModel';
+import { MoneySourceRepository } from '../../../infrastructure/repositories/MoneySourceRepository';
 import { startTestDatabase, stopTestDatabase } from '../../helpers/testDatabase';
 
 describe('MoneySourceRepository (integración contra Mongo real)', () => {

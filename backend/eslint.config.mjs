@@ -14,6 +14,13 @@ export default tseslint.config(
             // sistemáticos con TypeScript (globals ambientes, tipos, etc.) — recomendación
             // documentada de typescript-eslint.
             "no-undef": "off",
+            // El preset recommended no exceptúa el patrón idiomático de destructuring para
+            // omitir una clave (const { x: _x, ...rest } = obj), donde el prefijo _ señala
+            // "intencionalmente sin usar". Ya en uso en tests existentes del proyecto.
+            "@typescript-eslint/no-unused-vars": [
+                "error",
+                { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }
+            ],
             "import/order": [
                 "error",
                 {

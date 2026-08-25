@@ -3,7 +3,7 @@
 // cambia (o se activa `isolatedModules`), `req.userId` deja de tipar sin ningún error de
 // compilación visible hasta que se use en un sitio nuevo.
 declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
+   
   namespace Express {
     interface Request {
       userId?: string;

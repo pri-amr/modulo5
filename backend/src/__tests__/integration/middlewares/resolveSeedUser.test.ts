@@ -2,9 +2,9 @@ import express, { type Application, type Request, type Response } from 'express'
 import mongoose from 'mongoose';
 import request from 'supertest';
 
+import { UserModel } from '../../../infrastructure/models/UserModel';
 import { errorHandler } from '../../../presentation/middlewares/errorHandler';
 import { resolveSeedUser } from '../../../presentation/middlewares/resolveSeedUser';
-import { UserModel } from '../../../infrastructure/models/UserModel';
 import { startTestDatabase, stopTestDatabase } from '../../helpers/testDatabase';
 
 const buildTestApp = (): Application => {

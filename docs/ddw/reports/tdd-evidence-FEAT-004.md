@@ -248,3 +248,213 @@ frontend), sin regresiones:
 backend:  13 suites / 54 tests passed (63.9s)
 frontend: 12 suites / 48 tests passed (36.2s)
 ```
+
+## Block 3 — ESLint frontend
+
+Verificación manual directa (2026-08-24), sin mecanismo de test automatizado — decisión ya vigente
+desde el retiro de `format.test.ts`/`lint.test.ts` (ver arriba). Todo lo corrido abajo usa el
+binario local de ESLint (`node node_modules/eslint/bin/eslint.js ...`) desde `frontend/`, contra
+`eslint.config.mjs` ya creado en este bloque, salvo donde se indica lo contrario (`pnpm lint`,
+`pnpm install`).
+
+### Desviación respecto del código literal del spec — `Cannot redefine plugin "import"`
+
+El bloque especifica textualmente `plugins: { import: importPlugin }` en el objeto de config
+propio, además de `...nextCoreWebVitals` / `...nextTypescript`. Al implementarlo tal cual, `eslint .`
+abortaba **antes de analizar un solo archivo**:
+
+```
+ConfigError: Config (unnamed): Key "plugins": Cannot redefine plugin "import".
+```
+
+Diagnóstico: `eslint-config-next/core-web-vitals` ya registra un plugin bajo la clave `"import"`
+(verificado inspeccionando sus config objects: `plugins: ['react', 'react-hooks', 'import',
+'jsx-a11y', '@next/next']` en el primer elemento del array). El texto del spec asume que declarar
+`eslint-plugin-import@^2.32.0` como dependencia directa —la misma versión que ya trae
+`eslint-config-next`— evita "dos instancias divergentes del mismo plugin". En la práctica, con
+pnpm, **sí hay dos instancias físicas distintas** aunque ambas resuelvan `2.32.0`, porque el árbol
+de content-addressable store las separa por hash de peer-deps:
+
+```
+node_modules/.pnpm/eslint-plugin-import@2.32.0_1e08a532de1ece3cb57ab34162e4a048   (dependencia directa declarada en package.json)
+node_modules/.pnpm/eslint-plugin-import@2.32.0_729a0da87b83e477ed744c6e0310f94d   (la que usa eslint-config-next internamente)
+```
+
+ESLint 9 (flat config) compara por referencia de objeto, no por número de versión, así que dos
+instancias con el mismo `version` pero distinto objeto en memoria disparan el `ConfigError` igual
+que si fueran versiones distintas.
+
+**Fix aplicado** (única desviación del código literal del bloque, documentada acá y no en el spec,
+que no se tocó): se quitó la clave `plugins: { import: importPlugin }` y el `import
+importPlugin from "eslint-plugin-import"` correspondiente del objeto de config propio.
+`import/order` y `settings["import/resolver"]` se dejaron intactos — funcionan igual porque
+referencian la regla y el resolver por *nombre* (`"import/order"`, `"import/resolver"`), no por el
+objeto plugin, y usan la instancia que ya registró `eslint-config-next` bajo esa clave. Las 4
+devDependencies (`eslint`, `eslint-config-next`, `eslint-plugin-import`,
+`eslint-import-resolver-typescript`) se agregaron igual, tal como pide el bloque —
+`eslint-plugin-import` queda sin uso directo en el `import` statement del config propio, pero sigue
+siendo necesaria como dependencia declarada (no phantom) para que `eslint-import-resolver-typescript`
+y el propio `eslint-config-next` la resuelvan de forma determinística bajo el modo estricto de pnpm.
+Se dejó un comentario en `eslint.config.mjs` explicando el porqué (excepción a "sin comentarios" de
+`AGENTS.md`: es un workaround no obvio).
+
+Confirmado que la causa raíz no era config-específica de este bloque sino general de
+`eslint-config-next` + registro manual del mismo plugin: reproducible con `node -e` inspeccionando
+`(await import('eslint-config-next/core-web-vitals')).default` y viendo la clave `"import"` ya
+presente en `plugins`.
+
+### `pnpm install`
+
+```
+devDependencies:
++ eslint 9.39.5 (10.9.1 is available) deprecated
++ eslint-config-next 16.3.2
++ eslint-import-resolver-typescript 4.4.5
++ eslint-plugin-import 2.32.0
+
+Done in 35.1s using pnpm v11.13.0
+```
+
+Sin ninguna línea `Ignored build scripts` en la salida. Confirma que `eslint`,
+`eslint-config-next`, `eslint-plugin-import` ni `eslint-import-resolver-typescript` piden aprobar
+builds nuevos — no se activó la condición de BLOCKED del manejo de error del bloque.
+
+### AC-03 — `any` en `.tsx`
+
+Fixture temporal `frontend/src/__lint-verify-tmp__/has-any.tsx`:
+```ts
+const value: any = 1;
+
+export const Dummy = (): number => value;
+```
+```
+$ node node_modules/eslint/bin/eslint.js src/__lint-verify-tmp__/has-any.tsx
+  1:14  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+✖ 1 problem (1 error, 0 warnings)
+EXIT: 1
+```
+Confirmado.
+
+### AC-04 — imports desordenados con alias `@/...` mezclado, sobre copia real de `src/app/page.tsx`
+
+Fixture temporal `frontend/src/__lint-verify-tmp__/bad-import-order.tsx`, copia de
+`frontend/src/app/page.tsx` con el import de `@/data/transactionSeedOptions` puesto **antes** que
+`next/dynamic` (en el original están en el orden correcto: `next/dynamic` primero):
+```ts
+import { CATEGORY_OPTIONS, MONEY_SOURCE_OPTIONS } from "@/data/transactionSeedOptions";
+import dynamic from "next/dynamic";
+...
+```
+```
+$ node node_modules/eslint/bin/eslint.js src/__lint-verify-tmp__/bad-import-order.tsx
+  2:1  error  `next/dynamic` import should occur before import of `@/data/transactionSeedOptions`  import/order
+✖ 1 problem (1 error, 0 warnings)
+EXIT: 1
+```
+El mensaje de error confirma que `next/dynamic` se clasifica en el grupo `external` (por el
+`pathGroup` `{ pattern: "next", group: "external", position: "before" }`) y `@/data/...` en el
+grupo `internal` (por `{ pattern: "@/**", group: "internal", position: "after" }`), y que ESLint
+exige el orden `external` → `internal`. Confirmado — valida tanto el orden como la clasificación
+del alias.
+
+### AC-05 — `dangerouslySetInnerHTML`
+
+Fixture temporal `frontend/src/__lint-verify-tmp__/danger.tsx`:
+```tsx
+const Danger = (): React.JSX.Element => (
+  <div dangerouslySetInnerHTML={{ __html: "<b>x</b>" }} />
+);
+```
+```
+$ node node_modules/eslint/bin/eslint.js src/__lint-verify-tmp__/danger.tsx
+  2:8  error  Dangerous property 'dangerouslySetInnerHTML' found  react/no-danger
+✖ 1 problem (1 error, 0 warnings)
+EXIT: 1
+```
+Confirmado.
+
+### AC-07 — hook de React llamado condicionalmente
+
+Fixture temporal `frontend/src/__lint-verify-tmp__/conditional-hook.tsx`:
+```tsx
+const ConditionalHook = ({ flag }: { flag: boolean }): React.JSX.Element => {
+  if (flag) {
+    const [value] = useState(0);
+    return <span>{value}</span>;
+  }
+  return <span>none</span>;
+};
+```
+```
+$ node node_modules/eslint/bin/eslint.js src/__lint-verify-tmp__/conditional-hook.tsx
+  5:21  error  React Hook "useState" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?  react-hooks/rules-of-hooks
+✖ 1 problem (1 error, 0 warnings)
+EXIT: 1
+```
+Confirmado.
+
+### AC-06 (mitad frontend) — scope: ignora `.next/` y `coverage/`, sí analiza `src/`
+
+- Fixture con el mismo `any` en `.next/lint-verify-tmp/should-be-ignored.tsx`:
+  ```
+  0:0  warning  File ignored because of a matching ignore pattern...
+  ✖ 1 problem (0 errors, 1 warning)
+  EXIT: 0
+  ```
+- Mismo fixture en `coverage/lint-verify-tmp/should-be-ignored.tsx`:
+  ```
+  0:0  warning  File ignored because of a matching ignore pattern...
+  ✖ 1 problem (0 errors, 1 warning)
+  EXIT: 0
+  ```
+- `pnpm lint` (alcance completo, `eslint .` desde `frontend/`) con los 4 fixtures de `src/` todavía
+  presentes:
+  ```
+  $ eslint .
+  frontend\eslint.config.mjs
+    4:1  warning  Assign array to a variable before exporting as module default  import/no-anonymous-default-export
+  frontend\src\__lint-verify-tmp__\bad-import-order.tsx
+    2:1  error  `next/dynamic` import should occur before import of `@/data/transactionSeedOptions`  import/order
+  frontend\src\__lint-verify-tmp__\conditional-hook.tsx
+    5:21  error  React Hook "useState" is called conditionally...  react-hooks/rules-of-hooks
+  frontend\src\__lint-verify-tmp__\danger.tsx
+    2:8  error  Dangerous property 'dangerouslySetInnerHTML' found  react/no-danger
+  frontend\src\__lint-verify-tmp__\has-any.tsx
+    1:14  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  ✖ 5 problems (4 errors, 1 warning)
+  [ELIFECYCLE] Command failed with exit code 1.
+  EXIT: 1
+  ```
+Confirmado: `.next/` y `coverage/` se ignoran, `src/**` sí se analiza, y `pnpm lint` devuelve exit
+code ≠ 0 (1) cuando hay al menos un error real dentro de `src/`. El único warning ajeno a los
+fixtures (`import/no-anonymous-default-export` en `eslint.config.mjs`) es una regla propia del
+recommended set de `eslint-config-next/core-web-vitals` aplicada al propio archivo de config por
+exportar un array de forma anónima (`export default [...]`, tal como pide el bloque) — es una
+advertencia (no error), no bloquea el AC, y no depende de ninguna decisión propia de este bloque
+más allá de seguir la estructura de export literal del spec.
+
+### AC-08 (mitad frontend) — funciona sin `backend/node_modules`
+
+Verificado por inspección, igual que el precedente de Block 2 (mismo mecanismo, evitando forzar una
+reinstalación completa de `backend/` sin necesidad):
+- No existe `pnpm-workspace.yaml` a nivel raíz del repo ni `package.json` raíz — `backend/` y
+  `frontend/` son dos proyectos pnpm completamente independientes, cada uno con su propio
+  `pnpm-lock.yaml` y `node_modules`.
+- `frontend/eslint.config.mjs` no referencia ninguna ruta de `backend/`.
+- El script `"lint": "eslint ."` corre siempre con `cwd = frontend/`, por lo que la resolución de
+  módulos de Node nunca sube a buscar `backend/node_modules`.
+Confirmado por el mismo razonamiento estructural que ya validó Block 2 para el caso análogo.
+
+### Limpieza final
+
+Los 6 fixtures temporales (`src/__lint-verify-tmp__/` completo, y los dos directorios de prueba
+dentro de `.next/lint-verify-tmp/` y `coverage/lint-verify-tmp/`) se borraron al terminar. `git
+status --porcelain` final:
+```
+ M frontend/package.json
+ M frontend/pnpm-lock.yaml
+?? frontend/eslint.config.mjs
+```
+Sin ningún archivo de fixture residual dentro de `frontend/src/`. `pnpm lint` corrido una última vez
+sobre el estado limpio: exit `0`, único hallazgo el warning pre-existente de
+`import/no-anonymous-default-export` sobre `eslint.config.mjs` documentado arriba.

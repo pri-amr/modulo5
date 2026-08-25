@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
-import { TransactionRepository } from '../../../infrastructure/repositories/TransactionRepository';
 import { TransactionModel } from '../../../infrastructure/models/TransactionModel';
+import { TransactionRepository } from '../../../infrastructure/repositories/TransactionRepository';
 import { startTestDatabase, stopTestDatabase } from '../../helpers/testDatabase';
 
 describe('TransactionRepository.deleteById (integración contra Mongo real)', () => {

@@ -22,6 +22,15 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
   alternancia con estilo consistente en ambos estados, indicador visual de error por campo
   (`border-error`/`border-line`) y unificación del campo Descripción a `<input type="text">` (antes
   `<textarea>`) para recibir las mismas clases que el resto de los inputs.
+- [FEAT-004] Prettier compartido (`tabWidth: 4`, sin coma final) resuelto por búsqueda ascendente
+  desde `backend/` y `frontend/`, con script `format` en ambos paquetes.
+- [FEAT-004] ESLint propio por paquete (flat config, ESLint 9.x): `backend/` con
+  `@eslint/js` + `typescript-eslint` recommended + `eslint-plugin-import`; `frontend/` con
+  `eslint-config-next` (React/hooks/jsx-a11y/imports incluidos) más el resolver de TypeScript para
+  el alias `@/*`. Ambos reportan como error el uso de `any` y el orden de imports; `frontend/`
+  además prohíbe `dangerouslySetInnerHTML`. Script `lint` en ambos paquetes. Ningún hook de
+  pre-commit ni CI — correrlo queda a criterio de cada desarrollador (riesgo aceptado, ver
+  `docs/ddw/security/threat-FEAT-004.md`).
 
 ### Fixed
 
