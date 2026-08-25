@@ -1,9 +1,9 @@
 import mongoose from 'mongoose';
 
-import { connectDB } from './connection';
 import { CategoryModel } from '../models/CategoryModel';
 import { MoneySourceModel } from '../models/MoneySourceModel';
 import { UserModel } from '../models/UserModel';
+import { connectDB } from './connection';
 
 export const SEED_USER_NAME = 'Usuario Demo';
 const SEED_MONEY_SOURCE_NAME = 'Efectivo';

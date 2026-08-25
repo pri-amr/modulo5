@@ -1,7 +1,7 @@
 import request from 'supertest';
 
-import { ValidationError } from '../../application/errors/ValidationError';
 import app, { apiRouter } from '../../app';
+import { ValidationError } from '../../application/errors/ValidationError';
 
 describe('app wiring — errorHandler siempre captura rutas montadas después', () => {
   it('un CustomError lanzado en una ruta agregada como lo haría un bloque futuro es capturado por errorHandler, no por el handler por defecto de Express', async () => {
