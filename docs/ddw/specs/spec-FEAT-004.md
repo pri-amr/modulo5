@@ -6,7 +6,7 @@
 | PRD | docs/ddw/prd/prd-FEAT-004.md |
 | Tier | FEATURE |
 | Date | 2026-08-18 |
-| Spec loops | 0 |
+| Spec loops | 1 |
 | Loops since last human decision | 0 |
 
 ## Summary
@@ -84,11 +84,11 @@ N/A — no procesa input de usuario.
 **Required tests** (verificación manual, no automatizada — `.prettierrc.json`/`.prettierignore` son
 archivos de configuración del repo, no código de la aplicación; decisión del usuario. Evidencia de
 la corrida en `docs/ddw/reports/tdd-evidence-FEAT-004.md`)
-- [ ] `pnpm format` en `backend/` reescribe un archivo de prueba con indentación de 2 espacios a 4 — valida AC-01
-- [ ] `pnpm format` en `frontend/` reescribe un archivo de prueba con indentación de 2 espacios a 4 — valida AC-01
-- [ ] `pnpm format` sobre un array/objeto multilínea no agrega coma final al último elemento — valida AC-02
-- [ ] `pnpm format` en `backend/` no modifica ningún archivo dentro de `frontend/` ni viceversa — valida NFR-02
-- [ ] `pnpm format` sobre un archivo con sintaxis inválida sale con código ≠ 0 y no reescribe el
+- [ ] `test-manual-format-backend-tabwidth`: `pnpm format` en `backend/` reescribe un archivo de prueba con indentación de 2 espacios a 4 — valida AC-01
+- [ ] `test-manual-format-frontend-tabwidth`: `pnpm format` en `frontend/` reescribe un archivo de prueba con indentación de 2 espacios a 4 — valida AC-01
+- [ ] `test-manual-format-sin-coma-final`: `pnpm format` sobre un array/objeto multilínea no agrega coma final al último elemento — valida AC-02
+- [ ] `test-manual-format-no-cruza-paquetes`: `pnpm format` en `backend/` no modifica ningún archivo dentro de `frontend/` ni viceversa — valida NFR-02
+- [ ] `test-manual-format-sintaxis-invalida`: `pnpm format` sobre un archivo con sintaxis inválida sale con código ≠ 0 y no reescribe el
       archivo — valida el manejo de error documentado arriba
 
 **Completion criterion**
@@ -155,14 +155,14 @@ N/A.
 **Required tests** (verificación manual, no automatizada — `eslint.config.mjs` es un archivo de
 configuración del repo, no código de la aplicación; decisión del usuario. Evidencia de la corrida
 en `docs/ddw/reports/tdd-evidence-FEAT-004.md`)
-- [ ] Un archivo `.ts` con una variable tipada `any` hace fallar `pnpm lint` (exit code ≠ 0) — valida AC-03
-- [ ] Un archivo `.ts` con imports en un orden distinto de builtin→external→internal, o sin orden
+- [ ] `test-manual-lint-backend-any`: un archivo `.ts` con una variable tipada `any` hace fallar `pnpm lint` (exit code ≠ 0) — valida AC-03
+- [ ] `test-manual-lint-backend-import-order`: un archivo `.ts` con imports en un orden distinto de builtin→external→internal, o sin orden
       alfabético dentro de un grupo, hace fallar `pnpm lint` — valida AC-04
-- [ ] `pnpm lint` en `backend/` analiza únicamente `backend/src/**` (no `dist/`, no `coverage/`) y
+- [ ] `test-manual-lint-backend-scope-src`: `pnpm lint` en `backend/` analiza únicamente `backend/src/**` (no `dist/`, no `coverage/`) y
       devuelve exit code ≠ 0 si hay al menos un error — valida AC-06 (mitad backend)
-- [ ] `pnpm lint` en `backend/` completa sin fallar aunque `frontend/node_modules` no exista —
+- [ ] `test-manual-lint-backend-sin-node-modules-frontend`: `pnpm lint` en `backend/` completa sin fallar aunque `frontend/node_modules` no exista —
       valida AC-08 (mitad backend)
-- [ ] Falla el bloque (se detiene y se reporta) si `pnpm install` en `backend/` pide aprobar un
+- [ ] `test-manual-lint-backend-build-script-approval`: falla el bloque (se detiene y se reporta) si `pnpm install` en `backend/` pide aprobar un
       build nuevo para `eslint`, `@eslint/js`, `typescript-eslint` o `eslint-plugin-import` —
       valida el manejo de error documentado arriba
 
@@ -243,19 +243,19 @@ N/A.
 **Required tests** (verificación manual, no automatizada — `eslint.config.mjs` es un archivo de
 configuración del repo, no código de la aplicación; decisión del usuario. Evidencia de la corrida
 en `docs/ddw/reports/tdd-evidence-FEAT-004.md`)
-- [ ] Un archivo `.tsx` con una variable tipada `any` hace fallar `pnpm lint` — valida AC-03
-- [ ] Un archivo con imports desordenados, incluyendo un import con alias `@/...` mezclado fuera de
+- [ ] `test-manual-lint-frontend-any`: un archivo `.tsx` con una variable tipada `any` hace fallar `pnpm lint` — valida AC-03
+- [ ] `test-manual-lint-frontend-import-order-alias`: un archivo con imports desordenados, incluyendo un import con alias `@/...` mezclado fuera de
       orden, hace fallar `pnpm lint` y el alias se clasifica como grupo local/internal (usar un
       archivo real de `frontend/src`, p. ej. una copia modificada de `frontend/src/app/page.tsx`,
       no un caso sintético) — valida AC-04
-- [ ] Un componente con `dangerouslySetInnerHTML` hace fallar `pnpm lint` — valida AC-05
-- [ ] `pnpm lint` en `frontend/` analiza únicamente `frontend/src/**` (no `.next/`, no `coverage/`)
+- [ ] `test-manual-lint-frontend-dangerous-html`: un componente con `dangerouslySetInnerHTML` hace fallar `pnpm lint` — valida AC-05
+- [ ] `test-manual-lint-frontend-scope-src`: `pnpm lint` en `frontend/` analiza únicamente `frontend/src/**` (no `.next/`, no `coverage/`)
       y devuelve exit code ≠ 0 si hay al menos un error — valida AC-06 (mitad frontend)
-- [ ] Un componente con un hook de React llamado condicionalmente hace fallar `pnpm lint` — valida
+- [ ] `test-manual-lint-frontend-conditional-hook`: un componente con un hook de React llamado condicionalmente hace fallar `pnpm lint` — valida
       AC-07
-- [ ] `pnpm lint` en `frontend/` completa sin fallar aunque `backend/node_modules` no exista —
+- [ ] `test-manual-lint-frontend-sin-node-modules-backend`: `pnpm lint` en `frontend/` completa sin fallar aunque `backend/node_modules` no exista —
       valida AC-08 (mitad frontend)
-- [ ] Falla el bloque (se detiene y se reporta) si `pnpm install` en `frontend/` pide aprobar un
+- [ ] `test-manual-lint-frontend-build-script-approval`: falla el bloque (se detiene y se reporta) si `pnpm install` en `frontend/` pide aprobar un
       build nuevo para `eslint`, `eslint-config-next`, `eslint-plugin-import` o
       `eslint-import-resolver-typescript` — valida el manejo de error documentado arriba
 
