@@ -29,8 +29,16 @@ describe('POST /api/transactions (integración contra Mongo real)', () => {
     await CategoryModel.deleteMany({});
     await TransactionModel.deleteMany({});
 
-    const seedUser = await UserModel.create({ name: SEED_USER_NAME });
-    const otherUser = await UserModel.create({ name: 'Otro usuario' });
+    const seedUser = await UserModel.create({
+      name: SEED_USER_NAME,
+      email: 'seed.user@example.com',
+      passwordHash: 'fixed-test-password-hash',
+    });
+    const otherUser = await UserModel.create({
+      name: 'Otro usuario',
+      email: 'otro.usuario@example.com',
+      passwordHash: 'fixed-test-password-hash',
+    });
 
     const moneySource = await MoneySourceModel.create({
       userId: seedUser._id,
