@@ -133,4 +133,72 @@ describe("useRegisterUser", () => {
 
     expect(capturedSignal?.aborted).toBe(true);
   });
+
+  it("useRegisterUser no navega ni actualiza estado si el componente se desmonta antes de que el registro exitoso resuelva", async () => {
+    let capturedResolve: (value: { id: string; name: string; email: string }) => void = () => {};
+
+    mockedRegisterUser.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          capturedResolve = resolve;
+        }),
+    );
+
+    const { result, unmount } = renderHook(() => useRegisterUser());
+
+    act(() => {
+      Object.entries(VALID_VALUES).forEach(([field, value]) => {
+        result.current.setFieldValue(field as keyof RegisterFormValues, value);
+      });
+    });
+
+    act(() => {
+      void result.current.submit();
+    });
+
+    await waitFor(() => expect(result.current.loading).toBe(true));
+
+    unmount();
+
+    await act(async () => {
+      capturedResolve({ id: "user-3", name: "Ana Lopez", email: "ana@example.com" });
+      await Promise.resolve();
+    });
+
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  it("useRegisterUser no actualiza estado si el componente se desmonta antes de que el registro falle", async () => {
+    let capturedReject: (reason: Error) => void = () => {};
+
+    mockedRegisterUser.mockImplementation(
+      () =>
+        new Promise((_resolve, reject) => {
+          capturedReject = reject;
+        }),
+    );
+
+    const { result, unmount } = renderHook(() => useRegisterUser());
+
+    act(() => {
+      Object.entries(VALID_VALUES).forEach(([field, value]) => {
+        result.current.setFieldValue(field as keyof RegisterFormValues, value);
+      });
+    });
+
+    act(() => {
+      void result.current.submit();
+    });
+
+    await waitFor(() => expect(result.current.loading).toBe(true));
+
+    unmount();
+
+    await act(async () => {
+      capturedReject(new Error("El email ya está registrado"));
+      await Promise.resolve();
+    });
+
+    expect(mockPush).not.toHaveBeenCalled();
+  });
 });

@@ -59,4 +59,38 @@ describe("RegisterForm", () => {
     expect(await screen.findByText("Las contraseñas no coinciden")).toBeInTheDocument();
     expect(mockedRegisterUser).not.toHaveBeenCalled();
   });
+
+  it("RegisterForm muestra el mensaje de éxito tras un registro exitoso (valida AC-01)", async () => {
+    mockedRegisterUser.mockResolvedValueOnce({
+      id: "user-1",
+      name: "Ana López",
+      email: "ana@example.com",
+    });
+
+    render(<RegisterForm />);
+
+    fillField(FIELD_LABELS.name, "Ana López");
+    fillField(FIELD_LABELS.email, "ana@example.com");
+    fillField(FIELD_LABELS.password, "password123");
+    fillField(FIELD_LABELS.confirmPassword, "password123");
+
+    submitForm();
+
+    expect(await screen.findByText("Cuenta creada correctamente")).toBeInTheDocument();
+  });
+
+  it("RegisterForm muestra un error genérico si el backend rechaza el registro (valida AC-07)", async () => {
+    mockedRegisterUser.mockRejectedValueOnce(new Error("El email ya está registrado"));
+
+    render(<RegisterForm />);
+
+    fillField(FIELD_LABELS.name, "Ana López");
+    fillField(FIELD_LABELS.email, "ana@example.com");
+    fillField(FIELD_LABELS.password, "password123");
+    fillField(FIELD_LABELS.confirmPassword, "password123");
+
+    submitForm();
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("El email ya está registrado");
+  });
 });

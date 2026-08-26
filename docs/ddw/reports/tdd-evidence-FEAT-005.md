@@ -62,3 +62,22 @@ Revisión de calidad (arch-auditor): PASSED, 0 FAILs, 1 WARN (falta de paridad d
 `useCreateTransaction.test.ts` en el test de cancelación al desmontar) — resuelto agregando ese test
 antes de cerrar el bloque. Revisión de cumplimiento de spec (module-verifier): BLOCKED en su primera
 pasada por esta misma evidencia no persistida; resuelto con este archivo.
+
+### Corrección de cobertura (closeout de CODE)
+
+La corrida de cierre de fase detectó que la cobertura de branches de `frontend` bajó de 80.39%
+(línea base pre-FEAT-005, ver `tests-FEAT-004.md`) a 76.05% por las ramas nuevas sin cubrir en
+`useRegisterUser.ts` (líneas 84, 116-126) y `RegisterForm.tsx` (líneas 77-78). El comportamiento ya
+estaba bien implementado; faltaban los tests. Se agregaron 4 tests:
+
+- `RegisterForm muestra el mensaje de éxito tras un registro exitoso (valida AC-01)` — cubre línea 78
+- `RegisterForm muestra un error genérico si el backend rechaza el registro (valida AC-07)` — cubre línea 77
+- `useRegisterUser no navega ni actualiza estado si el componente se desmonta antes de que el registro exitoso resuelva` — cubre líneas 116-120
+- `useRegisterUser no actualiza estado si el componente se desmonta antes de que el registro falle` — cubre líneas 121-124
+
+Cobertura de branches del frontend tras el fix: **83.09%** (99.19% líneas, 100% funciones). Quedan
+sin cubrir, deliberadamente: `useRegisterUser.ts:84` (rama defensiva `instanceof yup.ValidationError`
+en su forma falsa) y `:123` (rama defensiva `instanceof Error` en su forma falsa) — ambas son la
+misma clase de rama defensiva ya sin cobertura en `useCreateTransaction.ts:23`, aceptada como patrón
+existente del proyecto; forzarlas exigiría mockear internals de `yup`/lanzar valores no-`Error`
+artificiales, contra la convención de "testear comportamiento, no implementación" de `AGENTS.md`.
