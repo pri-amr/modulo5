@@ -6,8 +6,8 @@
 | PRD | docs/ddw/prd/prd-FEAT-005.md |
 | Tier | FEATURE |
 | Date | 2026-08-25 |
-| Spec loops | 0 |
-| Loops since last human decision | 0 |
+| Spec loops | 1 |
+| Loops since last human decision | 1 |
 
 ## Summary
 
@@ -80,14 +80,14 @@ se especifica en Block 2.
 - Un `create` con `email` duplicado dispara un error de índice único de Mongo (código 11000); Block 2 lo evita con el chequeo previo `findByEmail` y traduce cualquier caso residual a una respuesta genérica vía el `errorHandler` ya existente.
 
 **Required tests**
-- [ ] it('UserModel requiere email: un User sin email dispara un error de validación de Mongoose')
-- [ ] it('UserModel requiere passwordHash: un User sin passwordHash dispara un error de validación')
-- [ ] it('UserModel rechaza un segundo usuario con el mismo email: el índice único dispara un error de Mongo (código 11000)')
-- [ ] it('UserModel normaliza el email a minúsculas al guardar')
-- [ ] it('UserRepository.create persiste un usuario y lo devuelve como entidad de dominio (valida FR-01)')
-- [ ] it('UserRepository.findByEmail encuentra un usuario existente sin distinguir mayúsculas de minúsculas (valida FR-02)')
-- [ ] it('UserRepository.findByEmail devuelve null si no existe ningún usuario con ese email (valida FR-02)')
-- [ ] it('seed crea el usuario semilla con email y passwordHash válidos, sin disparar el error de validación de los nuevos campos requeridos')
+- [ ] `test-block1-usermodel-requiere-email`: it('UserModel requiere email: un User sin email dispara un error de validación de Mongoose')
+- [ ] `test-block1-usermodel-requiere-passwordhash`: it('UserModel requiere passwordHash: un User sin passwordHash dispara un error de validación')
+- [ ] `test-block1-usermodel-rechaza-email-duplicado`: it('UserModel rechaza un segundo usuario con el mismo email: el índice único dispara un error de Mongo (código 11000)')
+- [ ] `test-block1-usermodel-normaliza-email-minusculas`: it('UserModel normaliza el email a minúsculas al guardar')
+- [ ] `test-block1-userrepository-create`: it('UserRepository.create persiste un usuario y lo devuelve como entidad de dominio (valida FR-01)')
+- [ ] `test-block1-userrepository-findbyemail-case-insensitive`: it('UserRepository.findByEmail encuentra un usuario existente sin distinguir mayúsculas de minúsculas (valida FR-02)')
+- [ ] `test-block1-userrepository-findbyemail-null`: it('UserRepository.findByEmail devuelve null si no existe ningún usuario con ese email (valida FR-02)')
+- [ ] `test-block1-seed-usuario-semilla`: it('seed crea el usuario semilla con email y passwordHash válidos, sin disparar el error de validación de los nuevos campos requeridos')
 
 **Rollback**
 Revertir el commit de este bloque. No hay migración de datos: el proyecto no tiene usuarios reales
@@ -160,17 +160,17 @@ invoca el service y responde 201, o delega el error con `next(error)` (mismo pat
   (AC-07, completado en Block 3)
 
 **Required tests**
-- [ ] it('RegisterUserService crea la cuenta con datos válidos y devuelve el DTO sin passwordHash (valida AC-01)')
-- [ ] it('RegisterUserService hashea la contraseña con bcrypt cost 12 antes de persistirla (valida NFR-01)')
-- [ ] it('RegisterUserService lanza un error de conflicto si el email ya está registrado (valida AC-02)')
-- [ ] it('RegisterUserService lanza un error de validación si el email tiene formato inválido (valida AC-03)')
-- [ ] it('RegisterUserService lanza un error de validación si la contraseña tiene menos de 8 caracteres (valida AC-04)')
-- [ ] it('RegisterUserService lanza un error de validación si confirmPassword no coincide con password (valida AC-05)')
-- [ ] it('RegisterUserService lanza un error de validación si falta algún campo obligatorio (valida AC-06)')
-- [ ] it('POST /api/auth/register responde 201 con el usuario creado (valida AC-01, integración)')
-- [ ] it('POST /api/auth/register responde 409 si el email ya existe (valida AC-02, integración)')
-- [ ] it('POST /api/auth/register responde 400 ante datos inválidos (valida AC-03 a AC-06, integración)')
-- [ ] it('POST /api/auth/register responde 500 sin filtrar detalles internos si la persistencia falla (valida AC-07, integración)')
+- [ ] `test-block2-registeruserservice-crea-cuenta`: it('RegisterUserService crea la cuenta con datos válidos y devuelve el DTO sin passwordHash (valida AC-01)')
+- [ ] `test-block2-registeruserservice-bcrypt-cost-12`: it('RegisterUserService hashea la contraseña con bcrypt cost 12 antes de persistirla (valida NFR-01)')
+- [ ] `test-block2-registeruserservice-conflicto-email`: it('RegisterUserService lanza un error de conflicto si el email ya está registrado (valida AC-02)')
+- [ ] `test-block2-registeruserservice-email-invalido`: it('RegisterUserService lanza un error de validación si el email tiene formato inválido (valida AC-03)')
+- [ ] `test-block2-registeruserservice-password-corta`: it('RegisterUserService lanza un error de validación si la contraseña tiene menos de 8 caracteres (valida AC-04)')
+- [ ] `test-block2-registeruserservice-confirmpassword-no-coincide`: it('RegisterUserService lanza un error de validación si confirmPassword no coincide con password (valida AC-05)')
+- [ ] `test-block2-registeruserservice-campo-faltante`: it('RegisterUserService lanza un error de validación si falta algún campo obligatorio (valida AC-06)')
+- [ ] `test-block2-authroutes-201`: it('POST /api/auth/register responde 201 con el usuario creado (valida AC-01, integración)')
+- [ ] `test-block2-authroutes-409`: it('POST /api/auth/register responde 409 si el email ya existe (valida AC-02, integración)')
+- [ ] `test-block2-authroutes-400`: it('POST /api/auth/register responde 400 ante datos inválidos (valida AC-03 a AC-06, integración)')
+- [ ] `test-block2-authroutes-500`: it('POST /api/auth/register responde 500 sin filtrar detalles internos si la persistencia falla (valida AC-07, integración)')
 
 **Completion criterion**
 `RegisterUserService.test.ts` y `auth.routes.test.ts` pasan; `POST /api/auth/register` devuelve
@@ -222,12 +222,12 @@ propios — la persistencia y sus constraints ya están definidas en Block 1.
   (`error`); los valores ingresados NO se limpian (AC-07)
 
 **Required tests**
-- [ ] it('RegisterForm muestra un error por campo si faltan datos obligatorios (valida AC-06)')
-- [ ] it('RegisterForm muestra un error si las contraseñas no coinciden (valida AC-05)')
-- [ ] it('useRegisterUser redirige a /login tras un registro exitoso (valida AC-01, FR-07)')
-- [ ] it('useRegisterUser muestra un mensaje de error y conserva los valores del formulario si el registro falla (valida AC-07)')
-- [ ] it('useRegisterUser sanitiza el campo name antes de enviarlo (criterio de seguridad de AGENTS.md)')
-- [ ] it('la página /login muestra el placeholder sin un formulario funcional (alcance acotado de FR-07)')
+- [ ] `test-block3-registerform-error-por-campo`: it('RegisterForm muestra un error por campo si faltan datos obligatorios (valida AC-06)')
+- [ ] `test-block3-registerform-contrasenas-no-coinciden`: it('RegisterForm muestra un error si las contraseñas no coinciden (valida AC-05)')
+- [ ] `test-block3-useregisteruser-redirige-login`: it('useRegisterUser redirige a /login tras un registro exitoso (valida AC-01, FR-07)')
+- [ ] `test-block3-useregisteruser-conserva-datos-en-error`: it('useRegisterUser muestra un mensaje de error y conserva los valores del formulario si el registro falla (valida AC-07)')
+- [ ] `test-block3-useregisteruser-sanitiza-name`: it('useRegisterUser sanitiza el campo name antes de enviarlo (criterio de seguridad de AGENTS.md)')
+- [ ] `test-block3-loginpage-placeholder`: it('la página /login muestra el placeholder sin un formulario funcional (alcance acotado de FR-07)')
 
 **Completion criterion**
 `RegisterForm.test.tsx`, `useRegisterUser.test.ts`, `register.page.test.tsx` y `login.page.test.tsx`

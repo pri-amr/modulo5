@@ -14,10 +14,10 @@
   ✅ F-SPEC-10: every block documents its error handling
   ✅ F-SPEC-16: every documented error is named by a test
   ✅ F-SPEC-11: dependencies between blocks are declared
-  ⚠️ W-SPEC-02: large block, consider splitting: Block 1 (Dominio + infraestructura de datos (User)) (9 files, 490 words), Block 2 (Aplicación + presentación (endpoint de registro)) (12 files, 590 words), Block 3 (Frontend (formulario de registro + placeholder de login)) (10 files, 466 words)
+  ⚠️ W-SPEC-02: large block, consider splitting: Block 1 (Dominio + infraestructura de datos (User)) (9 files, 498 words), Block 2 (Aplicación + presentación (endpoint de registro)) (12 files, 601 words), Block 3 (Frontend (formulario de registro + placeholder de login)) (10 files, 472 words)
   👁  F-SPEC-12 (contradicts the PRD) and F-SPEC-13 (terminology diverging from
       the PRD) are MANUAL: judge them and say so explicitly in your report.
-  ✅ F-SPEC-LOOP: 0 loop(s) since a human decided, under the ceiling of 3; 0 in total for this document
+  ✅ F-SPEC-LOOP: 1 loop(s) since a human decided, under the ceiling of 3; 1 in total for this document
 ────────────────────────────────────────────────────────────────
 Total: 13 passed, 0 failed, 1 warnings
 Result: PASSED
