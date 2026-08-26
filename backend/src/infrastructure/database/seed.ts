@@ -1,11 +1,17 @@
+import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
 
+import { BCRYPT_COST_FACTOR } from '../../common/constants/security';
 import { CategoryModel } from '../models/CategoryModel';
 import { MoneySourceModel } from '../models/MoneySourceModel';
 import { UserModel } from '../models/UserModel';
 import { connectDB } from './connection';
 
 export const SEED_USER_NAME = 'Usuario Demo';
+const SEED_USER_EMAIL = 'usuario.demo@example.com';
+// Contraseña de desarrollo del usuario semilla, únicamente para entornos locales/tests: nunca se
+// usa contra una base de datos de producción real (ver "What NOT to do" en AGENTS.md).
+const SEED_USER_DEV_PASSWORD = 'DemoPassword123';
 const SEED_MONEY_SOURCE_NAME = 'Efectivo';
 const SEED_CATEGORY_NAME = 'General';
 
@@ -20,7 +26,12 @@ export const seed = async (): Promise<void> => {
   let user = await UserModel.findOne({ name: SEED_USER_NAME });
 
   if (!user) {
-    user = await UserModel.create({ name: SEED_USER_NAME });
+    const passwordHash = await bcrypt.hash(SEED_USER_DEV_PASSWORD, BCRYPT_COST_FACTOR);
+    user = await UserModel.create({
+      name: SEED_USER_NAME,
+      email: SEED_USER_EMAIL,
+      passwordHash,
+    });
   }
 
   const existingMoneySource = await MoneySourceModel.findOne({ _id: SEED_MONEY_SOURCE_ID });

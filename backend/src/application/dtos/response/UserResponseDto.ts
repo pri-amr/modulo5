@@ -1,6 +1,5 @@
-export interface User {
+export interface UserResponseDto {
   id: string;
   name: string;
   email: string;
-  passwordHash: string;
 }

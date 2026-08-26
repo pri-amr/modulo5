@@ -4,6 +4,7 @@ import {
   seed,
   SEED_CATEGORY_ID,
   SEED_MONEY_SOURCE_ID,
+  SEED_USER_NAME,
 } from '../../../infrastructure/database/seed';
 import { CategoryModel } from '../../../infrastructure/models/CategoryModel';
 import { MoneySourceModel } from '../../../infrastructure/models/MoneySourceModel';
@@ -63,5 +64,17 @@ describe('seed (idempotencia contra Mongo real)', () => {
     await expect(CategoryModel.findById(SEED_CATEGORY_ID)).resolves.not.toBeNull();
     await expect(MoneySourceModel.countDocuments()).resolves.toBe(1);
     await expect(CategoryModel.countDocuments()).resolves.toBe(1);
+  });
+
+  it('seed crea el usuario semilla con email y passwordHash válidos, sin disparar el error de validación de los nuevos campos requeridos', async () => {
+    await seed();
+
+    const seedUser = await UserModel.findOne({ name: SEED_USER_NAME });
+
+    expect(seedUser).not.toBeNull();
+    expect(typeof seedUser?.email).toBe('string');
+    expect(seedUser?.email?.length).toBeGreaterThan(0);
+    expect(typeof seedUser?.passwordHash).toBe('string');
+    expect(seedUser?.passwordHash?.length).toBeGreaterThan(0);
   });
 });

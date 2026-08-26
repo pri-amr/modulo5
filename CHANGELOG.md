@@ -31,6 +31,12 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
   además prohíbe `dangerouslySetInnerHTML`. Script `lint` en ambos paquetes. Ningún hook de
   pre-commit ni CI — correrlo queda a criterio de cada desarrollador (riesgo aceptado, ver
   `docs/ddw/security/threat-FEAT-004.md`).
+- [FEAT-005] Registro de usuario con email y contraseña (sin passkeys): modelo `User` extendido
+  (email único + contraseña hasheada con bcrypt cost 12), endpoint público
+  `POST /api/auth/register` con validación Zod, formulario de registro en el frontend
+  (`/register`) con redirect a `/login` (placeholder sin formulario funcional) tras el alta
+  exitosa. Primer paso hacia la autenticación real que reemplazará al usuario semilla; el login
+  queda para el ticket siguiente.
 
 ### Fixed
 

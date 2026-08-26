@@ -3,6 +3,7 @@ import express, { type Application, type Router } from 'express';
 
 import { swaggerSpec } from './infrastructure/swagger/swagger.config';
 import { errorHandler } from './presentation/middlewares/errorHandler';
+import { authRoutes } from './presentation/routes/auth.routes';
 import { transactionRoutes } from './presentation/routes/transaction.routes';
 
 const app: Application = express();
@@ -24,6 +25,7 @@ app.use(apiRouter);
 // Montado sobre `apiRouter` (nunca sobre `app` directamente) para que `errorHandler` capture
 // cualquier error lanzado dentro de estas rutas — ver comentario arriba (R5).
 apiRouter.use('/api/transactions', transactionRoutes);
+apiRouter.use('/api/auth', authRoutes);
 apiRouter.get('/api-docs', (_req, res) => {
   res.json(swaggerSpec);
 });
