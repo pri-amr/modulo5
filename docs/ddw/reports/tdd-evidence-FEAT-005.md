@@ -41,3 +41,24 @@ Suite del bloque tras el fix: 14/14 (10 unitarios + 4 integración). Suite compl
 Revisión de calidad (arch-auditor) y de cumplimiento de spec (module-verifier): PASSED, 0 FAILs, 2
 WARN no bloqueantes (título de `it.each` sin `%s` — cosmético; esta misma persistencia de evidencia,
 ya resuelta con este archivo).
+
+## Block 3 — Frontend (formulario de registro + placeholder de login)
+
+| Test | Falló antes con | Pasa después |
+|---|---|---|
+| `RegisterForm muestra un error por campo si faltan datos obligatorios (valida AC-06)` | `Cannot find module '../../components/RegisterForm' from 'src/__tests__/components/RegisterForm.test.tsx'` (el componente no existía) | ✅ |
+| `RegisterForm muestra un error si las contraseñas no coinciden (valida AC-05)` | Mismo `Cannot find module`, mismo archivo de test | ✅ |
+| `useRegisterUser redirige a /login tras un registro exitoso (valida AC-01, FR-07)` | `Cannot find module '../../hooks/useRegisterUser' from 'src/__tests__/hooks/useRegisterUser.test.ts'` (el hook no existía) | ✅ |
+| `useRegisterUser muestra un mensaje de error y conserva los valores del formulario si el registro falla (valida AC-07)` | Mismo `Cannot find module`, mismo archivo de test | ✅ |
+| `useRegisterUser sanitiza el campo name antes de enviarlo (criterio de seguridad de AGENTS.md)` | Mismo `Cannot find module`, mismo archivo de test | ✅ |
+| `useRegisterUser aborta la request en curso al desmontarse y no actualiza estado del componente desmontado` (agregado tras el WARN de arch-auditor, paridad con `useCreateTransaction.test.ts`) | Mismo `Cannot find module`, mismo archivo de test | ✅ |
+| `la página /login muestra el placeholder sin un formulario funcional (alcance acotado de FR-07)` | `Cannot find module '../../app/login/page' from 'src/__tests__/app/login.page.test.tsx'` (la página no existía) | ✅ |
+| 2 tests de smoke en `register.page.test.tsx` (clases de tema del `<main>`, presencia de los 4 labels) | `Cannot find module '../../app/register/page' from 'src/__tests__/app/register.page.test.tsx'` (la página no existía) | ✅ |
+
+Suite del bloque tras el fix: 9/9 (incluye el test de cancelación agregado). Suite completa del
+frontend: 57/57, 16/16 suites.
+
+Revisión de calidad (arch-auditor): PASSED, 0 FAILs, 1 WARN (falta de paridad de cobertura con
+`useCreateTransaction.test.ts` en el test de cancelación al desmontar) — resuelto agregando ese test
+antes de cerrar el bloque. Revisión de cumplimiento de spec (module-verifier): BLOCKED en su primera
+pasada por esta misma evidencia no persistida; resuelto con este archivo.
