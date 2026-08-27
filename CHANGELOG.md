@@ -37,6 +37,11 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
   (`/register`) con redirect a `/login` (placeholder sin formulario funcional) tras el alta
   exitosa. Primer paso hacia la autenticación real que reemplazará al usuario semilla; el login
   queda para el ticket siguiente.
+- [FEAT-006] Rediseño visual de la pantalla de registro: nuevo layout `AuthLayout` con tarjeta
+  centrada de 40% de ancho en desktop (panel de ícono SVG inline + formulario), que colapsa a solo
+  formulario centrado por debajo de 640px; renombre de "Contraseña" a "Clave" en labels y mensajes
+  de validación; banner visible (fondo/borde) para el error de alta fallida en vez de texto plano;
+  tamaño de fuente y espaciado de campos aumentados. Sin cambios de comportamiento ni de backend.
 
 ### Fixed
 
