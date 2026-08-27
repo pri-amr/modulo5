@@ -96,14 +96,20 @@ claro). El cálculo se hizo con un script Node ejecutado en el scratchpad de la 
 (no forma parte del repo) para evitar errores de redondeo manual; los resultados se verificaron
 también a mano.
 
-**`test-manual-block2-nfr01-contrast-text`** — `--color-fg` vs `--color-bg`:
+**`test-manual-block2-nfr01-contrast-text`** — `--color-fg` vs el fondo real detrás del texto del
+formulario. El texto (labels, inputs, título) se renderiza dentro de la tarjeta de `AuthLayout`
+(mismo razonamiento que el cálculo del banner), así que el fondo correcto es `--color-surface`, no
+`--color-bg` — se documentan ambos para que quede explícito por qué no cambia el veredicto:
 
-- Modo oscuro: `--color-fg` = `rgb(245 245 247)`, `--color-bg` = `rgb(11 11 18)`.
-  `L(fg) = 0.914327`, `L(bg) = 0.003542`. Ratio = `(0.914327+0.05)/(0.003542+0.05) = 18.011:1`.
-- Modo claro (`.light`): `--color-fg` = `rgb(17 17 20)`, `--color-bg` = `rgb(255 255 255)`.
-  `L(fg) = 0.005706`, `L(bg) = 1.000000`. Ratio = `(1.000000+0.05)/(0.005706+0.05) = 18.849:1`.
-- **Resultado: ambos ≥4.5:1 (18.011:1 y 18.849:1) — cumple, sin cambios necesarios; los tokens
-  preexistentes ya cumplían de sobra.**
+- Modo oscuro, vs `--color-bg` = `rgb(11 11 18)` (fondo de página, fuera de la tarjeta):
+  Ratio = `18.011:1`.
+- Modo oscuro, vs `--color-surface` = `rgb(23 22 31)` (fondo real de la tarjeta): Ratio =
+  `16.470:1`.
+- Modo claro (`.light`), vs `--color-bg` = `--color-surface` = `rgb(255 255 255)` (idénticos en
+  modo claro, no hay discrepancia posible): Ratio = `18.849:1`.
+- **Resultado: con el fondo correcto (`--color-surface`) el ratio es 16.470:1 (oscuro) y 18.849:1
+  (claro), ambos ≥4.5:1 con margen amplio — cumple, sin cambios necesarios; los tokens preexistentes
+  ya cumplían de sobra en cualquiera de los dos fondos.**
 
 **`test-manual-block2-nfr01-contrast-banner`** — texto/borde del banner (`--color-error`, color
 sólido, no mezclado) contra el fondo tenue del propio banner (`--color-error` mezclado por alpha
