@@ -39,6 +39,19 @@ describe("AuthLayout", () => {
     expect(contentPanel).toHaveTextContent("contenido");
   });
 
+  it("test-block1-panels-split-50-50", () => {
+    render(<AuthLayout>contenido</AuthLayout>);
+
+    expect(screen.getByTestId("auth-layout-icon-panel")).toHaveClass("sm:w-1/2");
+    expect(screen.getByTestId("auth-layout-content-panel")).toHaveClass("sm:w-1/2");
+  });
+
+  it("test-block1-card-radius-1rem", () => {
+    render(<AuthLayout>contenido</AuthLayout>);
+
+    expect(screen.getByTestId("auth-layout-card")).toHaveClass("rounded-[1rem]");
+  });
+
   it("test-block1-icon-inline-svg-no-library", () => {
     const { container } = render(<AuthLayout>contenido</AuthLayout>);
 

@@ -8,11 +8,11 @@ const AuthLayout = ({ children }: AuthLayoutProps): React.JSX.Element => (
   <div className="flex min-h-screen w-full items-center justify-center px-4 py-8">
     <div
       data-testid="auth-layout-card"
-      className="flex w-full max-w-4xl overflow-hidden rounded-field border border-line bg-surface sm:w-[40%]"
+      className="flex w-full max-w-4xl overflow-hidden rounded-[1rem] border border-line bg-surface sm:w-[40%]"
     >
       <div
         data-testid="auth-layout-icon-panel"
-        className="hidden w-2/5 items-center justify-center bg-accent/10 p-6 sm:flex"
+        className="hidden items-center justify-center bg-accent/10 p-6 sm:flex sm:w-1/2"
       >
         <svg
           viewBox="0 0 24 24"
@@ -30,7 +30,7 @@ const AuthLayout = ({ children }: AuthLayoutProps): React.JSX.Element => (
       </div>
       <div
         data-testid="auth-layout-content-panel"
-        className="flex w-full flex-col items-center justify-center p-6"
+        className="flex w-full flex-col items-center justify-center p-6 sm:w-1/2"
       >
         {children}
       </div>
