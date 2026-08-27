@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 
 import RegisterPage from "@/app/register/page";
 
@@ -26,5 +26,16 @@ describe("RegisterPage", () => {
     expect(screen.getByLabelText("Email")).toBeInTheDocument();
     expect(screen.getByLabelText("Contraseña")).toBeInTheDocument();
     expect(screen.getByLabelText("Confirmar contraseña")).toBeInTheDocument();
+  });
+
+  it("test-block1-register-page-uses-authlayout", async () => {
+    render(<RegisterPage />);
+
+    const contentPanel = await screen.findByTestId("auth-layout-content-panel");
+
+    expect(
+      within(contentPanel).getByRole("heading", { name: "Crear cuenta" }),
+    ).toBeInTheDocument();
+    expect(within(contentPanel).getByLabelText("Nombre")).toBeInTheDocument();
   });
 });
