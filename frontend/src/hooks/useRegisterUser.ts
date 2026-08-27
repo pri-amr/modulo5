@@ -31,12 +31,12 @@ const registerFormSchema = yup.object({
   email: yup.string().trim().email("El email no es válido").required("El email es requerido"),
   password: yup
     .string()
-    .required("La contraseña es requerida")
-    .min(8, "La contraseña debe tener al menos 8 caracteres"),
+    .required("La clave es requerida")
+    .min(8, "La clave debe tener al menos 8 caracteres"),
   confirmPassword: yup
     .string()
-    .required("La confirmación de contraseña es requerida")
-    .oneOf([yup.ref("password")], "Las contraseñas no coinciden"),
+    .required("La confirmación de clave es requerida")
+    .oneOf([yup.ref("password")], "Las claves no coinciden"),
 });
 
 type UseRegisterUserResult = {

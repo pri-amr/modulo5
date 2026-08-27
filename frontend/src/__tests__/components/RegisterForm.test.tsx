@@ -18,8 +18,8 @@ const mockedRegisterUser = AuthService.registerUser as jest.Mock;
 const FIELD_LABELS = {
   name: "Nombre",
   email: "Email",
-  password: "Contraseña",
-  confirmPassword: "Confirmar contraseña",
+  password: "Clave",
+  confirmPassword: "Confirmar clave",
 };
 
 const fillField = (label: string, value: string): void => {
@@ -28,6 +28,13 @@ const fillField = (label: string, value: string): void => {
 
 const submitForm = (): void => {
   fireEvent.click(screen.getByRole("button", { name: "Crear cuenta" }));
+};
+
+const fillValidForm = (): void => {
+  fillField(FIELD_LABELS.name, "Ana López");
+  fillField(FIELD_LABELS.email, "ana@example.com");
+  fillField(FIELD_LABELS.password, "password123");
+  fillField(FIELD_LABELS.confirmPassword, "password123");
 };
 
 describe("RegisterForm", () => {
@@ -42,11 +49,32 @@ describe("RegisterForm", () => {
 
     expect(await screen.findByText("El nombre es requerido")).toBeInTheDocument();
     expect(await screen.findByText("El email es requerido")).toBeInTheDocument();
-    expect(await screen.findByText("La contraseña es requerida")).toBeInTheDocument();
+    expect(await screen.findByText("La clave es requerida")).toBeInTheDocument();
     expect(mockedRegisterUser).not.toHaveBeenCalled();
   });
 
-  it("RegisterForm muestra un error si las contraseñas no coinciden (valida AC-05)", async () => {
+  it("test-block2-validation-message-clave-requerida", async () => {
+    render(<RegisterForm />);
+
+    submitForm();
+
+    expect(await screen.findByText("La clave es requerida")).toBeInTheDocument();
+  });
+
+  it("test-block2-validation-message-clave-longitud", async () => {
+    render(<RegisterForm />);
+
+    fillField(FIELD_LABELS.name, "Ana López");
+    fillField(FIELD_LABELS.email, "ana@example.com");
+    fillField(FIELD_LABELS.password, "short1");
+    fillField(FIELD_LABELS.confirmPassword, "short1");
+
+    submitForm();
+
+    expect(await screen.findByText("La clave debe tener al menos 8 caracteres")).toBeInTheDocument();
+  });
+
+  it("test-block2-validation-message-claves-no-coinciden", async () => {
     render(<RegisterForm />);
 
     fillField(FIELD_LABELS.name, "Ana López");
@@ -56,7 +84,7 @@ describe("RegisterForm", () => {
 
     submitForm();
 
-    expect(await screen.findByText("Las contraseñas no coinciden")).toBeInTheDocument();
+    expect(await screen.findByText("Las claves no coinciden")).toBeInTheDocument();
     expect(mockedRegisterUser).not.toHaveBeenCalled();
   });
 
@@ -69,11 +97,7 @@ describe("RegisterForm", () => {
 
     render(<RegisterForm />);
 
-    fillField(FIELD_LABELS.name, "Ana López");
-    fillField(FIELD_LABELS.email, "ana@example.com");
-    fillField(FIELD_LABELS.password, "password123");
-    fillField(FIELD_LABELS.confirmPassword, "password123");
-
+    fillValidForm();
     submitForm();
 
     expect(await screen.findByText("Cuenta creada correctamente")).toBeInTheDocument();
@@ -84,13 +108,54 @@ describe("RegisterForm", () => {
 
     render(<RegisterForm />);
 
-    fillField(FIELD_LABELS.name, "Ana López");
-    fillField(FIELD_LABELS.email, "ana@example.com");
-    fillField(FIELD_LABELS.password, "password123");
-    fillField(FIELD_LABELS.confirmPassword, "password123");
-
+    fillValidForm();
     submitForm();
 
     expect(await screen.findByRole("alert")).toHaveTextContent("El email ya está registrado");
+  });
+
+  it("test-block2-register-labels-clave", async () => {
+    render(<RegisterForm />);
+
+    expect(await screen.findByLabelText("Clave")).toBeInTheDocument();
+    expect(screen.getByLabelText("Confirmar clave")).toBeInTheDocument();
+    expect(screen.queryByText("Contraseña", { exact: false })).not.toBeInTheDocument();
+  });
+
+  it("test-block2-error-banner-styled", async () => {
+    mockedRegisterUser.mockRejectedValueOnce(new Error("El email ya está registrado"));
+
+    render(<RegisterForm />);
+
+    fillValidForm();
+    submitForm();
+
+    const banner = await screen.findByRole("alert");
+
+    expect(banner.tagName).toBe("DIV");
+    expect(banner).toHaveClass("border-error");
+    expect(banner).toHaveTextContent("El email ya está registrado");
+  });
+
+  it("test-block2-input-font-size-lg", () => {
+    render(<RegisterForm />);
+
+    expect(screen.getByLabelText("Nombre")).toHaveClass("text-lg");
+    expect(screen.getByLabelText("Email")).toHaveClass("text-lg");
+    expect(screen.getByLabelText("Clave")).toHaveClass("text-lg");
+    expect(screen.getByLabelText("Confirmar clave")).toHaveClass("text-lg");
+  });
+
+  it("test-block2-label-font-size-base", () => {
+    render(<RegisterForm />);
+
+    expect(screen.getByText("Nombre")).toHaveClass("text-base");
+    expect(screen.getByText("Clave")).toHaveClass("text-base");
+  });
+
+  it("test-block2-field-spacing-13px", () => {
+    render(<RegisterForm />);
+
+    expect(screen.getByTestId("register-form-fields")).toHaveClass("space-y-[13px]");
   });
 });

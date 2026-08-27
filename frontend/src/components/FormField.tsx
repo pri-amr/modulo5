@@ -4,12 +4,24 @@ type FormFieldProps = {
   label: string;
   htmlFor: string;
   error?: string;
+  labelSize?: "sm" | "base";
   children: ReactNode;
 };
 
-const FormField = ({ label, htmlFor, error, children }: FormFieldProps): React.JSX.Element => (
+const LABEL_SIZE_CLASSES: Record<NonNullable<FormFieldProps["labelSize"]>, string> = {
+  sm: "text-sm",
+  base: "text-base",
+};
+
+const FormField = ({
+  label,
+  htmlFor,
+  error,
+  labelSize = "sm",
+  children,
+}: FormFieldProps): React.JSX.Element => (
   <div>
-    <label htmlFor={htmlFor} className="block text-sm font-medium">
+    <label htmlFor={htmlFor} className={`block ${LABEL_SIZE_CLASSES[labelSize]} font-medium`}>
       {label}
     </label>
     {children}

@@ -24,57 +24,68 @@ const RegisterForm = (): React.JSX.Element => {
   const hasError = (field: keyof RegisterFormValues): boolean => Boolean(fieldErrors[field]);
 
   const fieldClassName = (field: keyof RegisterFormValues): string =>
-    `w-full rounded-field border bg-surface px-3 py-2 text-fg ${hasError(field) ? "border-error" : "border-line"}`;
+    `w-full rounded-field border bg-surface px-3 py-2 text-lg text-fg ${hasError(field) ? "border-error" : "border-line"}`;
 
   return (
     <form onSubmit={handleSubmit} noValidate>
-      <FormField label="Nombre" htmlFor="name" error={fieldErrors.name}>
-        <input
-          id="name"
-          type="text"
-          value={values.name}
-          onChange={handleChange("name")}
-          disabled={loading}
-          className={fieldClassName("name")}
-        />
-      </FormField>
+      <div className="space-y-[13px]" data-testid="register-form-fields">
+        <FormField label="Nombre" htmlFor="name" error={fieldErrors.name} labelSize="base">
+          <input
+            id="name"
+            type="text"
+            value={values.name}
+            onChange={handleChange("name")}
+            disabled={loading}
+            className={fieldClassName("name")}
+          />
+        </FormField>
 
-      <FormField label="Email" htmlFor="email" error={fieldErrors.email}>
-        <input
-          id="email"
-          type="email"
-          value={values.email}
-          onChange={handleChange("email")}
-          disabled={loading}
-          className={fieldClassName("email")}
-        />
-      </FormField>
+        <FormField label="Email" htmlFor="email" error={fieldErrors.email} labelSize="base">
+          <input
+            id="email"
+            type="email"
+            value={values.email}
+            onChange={handleChange("email")}
+            disabled={loading}
+            className={fieldClassName("email")}
+          />
+        </FormField>
 
-      <FormField label="Contraseña" htmlFor="password" error={fieldErrors.password}>
-        <input
-          id="password"
-          type="password"
-          value={values.password}
-          onChange={handleChange("password")}
-          disabled={loading}
-          className={fieldClassName("password")}
-        />
-      </FormField>
+        <FormField label="Clave" htmlFor="password" error={fieldErrors.password} labelSize="base">
+          <input
+            id="password"
+            type="password"
+            value={values.password}
+            onChange={handleChange("password")}
+            disabled={loading}
+            className={fieldClassName("password")}
+          />
+        </FormField>
 
-      <FormField label="Confirmar contraseña" htmlFor="confirmPassword" error={fieldErrors.confirmPassword}>
-        <input
-          id="confirmPassword"
-          type="password"
-          value={values.confirmPassword}
-          onChange={handleChange("confirmPassword")}
-          disabled={loading}
-          className={fieldClassName("confirmPassword")}
-        />
-      </FormField>
+        <FormField
+          label="Confirmar clave"
+          htmlFor="confirmPassword"
+          error={fieldErrors.confirmPassword}
+          labelSize="base"
+        >
+          <input
+            id="confirmPassword"
+            type="password"
+            value={values.confirmPassword}
+            onChange={handleChange("confirmPassword")}
+            disabled={loading}
+            className={fieldClassName("confirmPassword")}
+          />
+        </FormField>
+      </div>
 
       <Loader visible={loading} />
 
-      {error ? <p role="alert">{error}</p> : null}
+      {error ? (
+        <div role="alert" className="rounded-field border border-error bg-error/[3%] px-4 py-3 text-error">
+          {error}
+        </div>
+      ) : null}
       {success ? <p>Cuenta creada correctamente</p> : null}
 
       <button

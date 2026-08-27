@@ -24,8 +24,8 @@ describe("RegisterPage", () => {
 
     expect(await screen.findByLabelText("Nombre")).toBeInTheDocument();
     expect(screen.getByLabelText("Email")).toBeInTheDocument();
-    expect(screen.getByLabelText("Contraseña")).toBeInTheDocument();
-    expect(screen.getByLabelText("Confirmar contraseña")).toBeInTheDocument();
+    expect(screen.getByLabelText("Clave")).toBeInTheDocument();
+    expect(screen.getByLabelText("Confirmar clave")).toBeInTheDocument();
   });
 
   it("test-block1-register-page-uses-authlayout", async () => {

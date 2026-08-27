@@ -27,6 +27,49 @@ describe("useRegisterUser", () => {
     jest.clearAllMocks();
   });
 
+  it("useRegisterUser expone los mensajes de validación de clave en español (valida AC-05)", async () => {
+    const { result } = renderHook(() => useRegisterUser());
+
+    act(() => {
+      result.current.setFieldValue("name", VALID_VALUES.name);
+      result.current.setFieldValue("email", VALID_VALUES.email);
+      result.current.setFieldValue("password", "");
+      result.current.setFieldValue("confirmPassword", "");
+    });
+
+    act(() => {
+      void result.current.submit();
+    });
+
+    await waitFor(() => expect(result.current.fieldErrors.password).toBe("La clave es requerida"));
+    expect(result.current.fieldErrors.confirmPassword).toBe("La confirmación de clave es requerida");
+
+    act(() => {
+      result.current.setFieldValue("password", "short1");
+      result.current.setFieldValue("confirmPassword", "otra12");
+    });
+
+    act(() => {
+      void result.current.submit();
+    });
+
+    await waitFor(() =>
+      expect(result.current.fieldErrors.password).toBe("La clave debe tener al menos 8 caracteres"),
+    );
+
+    act(() => {
+      result.current.setFieldValue("password", "password123");
+      result.current.setFieldValue("confirmPassword", "otraPassword123");
+    });
+
+    act(() => {
+      void result.current.submit();
+    });
+
+    await waitFor(() => expect(result.current.fieldErrors.confirmPassword).toBe("Las claves no coinciden"));
+    expect(mockedRegisterUser).not.toHaveBeenCalled();
+  });
+
   it("useRegisterUser redirige a /login tras un registro exitoso (valida AC-01, FR-07)", async () => {
     mockedRegisterUser.mockResolvedValueOnce({
       id: "user-1",
