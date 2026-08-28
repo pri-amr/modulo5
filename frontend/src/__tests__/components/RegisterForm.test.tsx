@@ -158,4 +158,104 @@ describe("RegisterForm", () => {
 
     expect(screen.getByTestId("register-form-fields")).toHaveClass("space-y-[13px]");
   });
+
+  it("test-block2-form-fixed-width", () => {
+    const { container } = render(<RegisterForm />);
+
+    expect(container.querySelector("form")).toHaveClass("w-full");
+  });
+
+  it("test-block2-button-spacing-13px", () => {
+    // space-y-[13px] de Tailwind solo pone margin-top entre hermanos DENTRO del mismo
+    // contenedor. register-form-fields y register-form-actions son hermanos de <form>, así
+    // que la separación entre el bloque de campos y el botón depende de que el propio <form>
+    // tenga space-y-[13px] — no alcanza con que cada div interno lo tenga por separado.
+    const { container } = render(<RegisterForm />);
+
+    const button = screen.getByRole("button", { name: "Crear cuenta" });
+
+    expect(button.closest('[data-testid="register-form-actions"]')).toHaveClass("space-y-[13px]");
+    expect(container.querySelector("form")).toHaveClass("space-y-[13px]");
+  });
+
+  it("test-block2-button-centered-content-width", () => {
+    render(<RegisterForm />);
+
+    const button = screen.getByRole("button", { name: "Crear cuenta" });
+
+    expect(button).toHaveClass("block", "mx-auto");
+    expect(button).not.toHaveClass("w-full");
+  });
+
+  it("test-block2-input-radius-1rem", () => {
+    render(<RegisterForm />);
+
+    expect(screen.getByLabelText("Nombre")).toHaveClass("rounded-[1rem]");
+    expect(screen.getByLabelText("Email")).toHaveClass("rounded-[1rem]");
+    expect(screen.getByLabelText("Clave")).toHaveClass("rounded-[1rem]");
+    expect(screen.getByLabelText("Confirmar clave")).toHaveClass("rounded-[1rem]");
+  });
+
+  it("test-block2-button-radius-1rem", async () => {
+    render(<RegisterForm />);
+
+    expect(screen.getByRole("button", { name: "Crear cuenta" })).toHaveClass("rounded-[1rem]");
+  });
+
+  it("test-block2-banner-radius-1rem", async () => {
+    mockedRegisterUser.mockRejectedValueOnce(new Error("El email ya está registrado"));
+
+    render(<RegisterForm />);
+
+    fillValidForm();
+    submitForm();
+
+    const bannerText = await screen.findByText("El email ya está registrado");
+    const banner = bannerText.closest('[role="alert"]') ?? bannerText;
+
+    expect(banner).toHaveClass("rounded-[1rem]");
+  });
+
+  it("test-block2-banner-spacing-13px", async () => {
+    // Mismo motivo que test-block2-button-spacing-13px: el banner es hermano del bloque de
+    // campos a través de <form>, no de register-form-actions directamente, así que la
+    // separación "arriba" del banner (AC-09) depende de space-y-[13px] en el propio <form>.
+    mockedRegisterUser.mockRejectedValueOnce(new Error("El email ya está registrado"));
+
+    const { container } = render(<RegisterForm />);
+
+    fillValidForm();
+    submitForm();
+
+    const bannerText = await screen.findByText("El email ya está registrado");
+    const banner = bannerText.closest('[role="alert"]') ?? bannerText;
+
+    expect(banner.closest('[data-testid="register-form-actions"]')).toHaveClass("space-y-[13px]");
+    expect(container.querySelector("form")).toHaveClass("space-y-[13px]");
+  });
+
+  it("test-block2-banner-text-wraps-no-expand", async () => {
+    // AVISO: este test NO valida el wrap real del texto del banner ni la ausencia de layout
+    // shift (AC-11) — jsdom no ejecuta ningún motor de layout, así que ese comportamiento no
+    // es observable de forma automatizada en este entorno (getBoundingClientRect siempre da
+    // 0 sin importar el CSS). Lo único que prueba es una regresión puntual: que, con el
+    // banner de error largo visible, `<form>` sigue teniendo `w-full` (no se volvió
+    // condicional al estado de error) y que el input de referencia conserva su propia clase
+    // de ancho. AC-11 queda pendiente de verificación visual manual en navegador.
+    mockedRegisterUser.mockRejectedValueOnce(
+      new Error(
+        "Este es un mensaje de error muy largo que simula un texto extenso devuelto por el backend cuando falla el alta de la cuenta de usuario, para verificar que el ancho de los campos no cambia",
+      ),
+    );
+
+    const { container } = render(<RegisterForm />);
+
+    fillValidForm();
+    submitForm();
+
+    await screen.findByText(/mensaje de error muy largo/);
+
+    expect(container.querySelector("form")).toHaveClass("w-full");
+    expect(screen.getByLabelText("Email")).toHaveClass("w-full");
+  });
 });

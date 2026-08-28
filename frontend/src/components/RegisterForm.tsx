@@ -24,10 +24,10 @@ const RegisterForm = (): React.JSX.Element => {
   const hasError = (field: keyof RegisterFormValues): boolean => Boolean(fieldErrors[field]);
 
   const fieldClassName = (field: keyof RegisterFormValues): string =>
-    `w-full rounded-field border bg-surface px-3 py-2 text-lg text-fg ${hasError(field) ? "border-error" : "border-line"}`;
+    `w-full rounded-[1rem] border bg-surface px-3 py-2 text-lg text-fg ${hasError(field) ? "border-error" : "border-line"}`;
 
   return (
-    <form onSubmit={handleSubmit} noValidate>
+    <form onSubmit={handleSubmit} noValidate className="w-full space-y-[13px]">
       <div className="space-y-[13px]" data-testid="register-form-fields">
         <FormField label="Nombre" htmlFor="name" error={fieldErrors.name} labelSize="base">
           <input
@@ -79,22 +79,24 @@ const RegisterForm = (): React.JSX.Element => {
         </FormField>
       </div>
 
-      <Loader visible={loading} />
+      <div className="space-y-[13px]" data-testid="register-form-actions">
+        <Loader visible={loading} />
 
-      {error ? (
-        <div role="alert" className="rounded-field border border-error bg-error/[3%] px-4 py-3 text-error">
-          {error}
-        </div>
-      ) : null}
-      {success ? <p>Cuenta creada correctamente</p> : null}
+        {error ? (
+          <div role="alert" className="rounded-[1rem] border border-error bg-error/[3%] px-4 py-3 text-error">
+            {error}
+          </div>
+        ) : null}
+        {success ? <p>Cuenta creada correctamente</p> : null}
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="rounded-field bg-accent px-4 py-2 text-white hover:bg-accent-blue disabled:opacity-50"
-      >
-        Crear cuenta
-      </button>
+        <button
+          type="submit"
+          disabled={loading}
+          className="block mx-auto rounded-[1rem] bg-accent px-4 py-2 text-white hover:bg-accent-blue disabled:opacity-50"
+        >
+          Crear cuenta
+        </button>
+      </div>
     </form>
   );
 };

@@ -30,7 +30,7 @@ const AuthLayout = ({ children }: AuthLayoutProps): React.JSX.Element => (
       </div>
       <div
         data-testid="auth-layout-content-panel"
-        className="flex w-full flex-col items-center justify-center p-6 sm:w-1/2"
+        className="flex w-full min-w-0 flex-col items-center justify-center p-6 sm:w-1/2"
       >
         {children}
       </div>
