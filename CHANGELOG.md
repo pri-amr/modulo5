@@ -42,6 +42,27 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
   formulario centrado por debajo de 640px; renombre de "Contraseña" a "Clave" en labels y mensajes
   de validación; banner visible (fondo/borde) para el error de alta fallida en vez de texto plano;
   tamaño de fuente y espaciado de campos aumentados. Sin cambios de comportamiento ni de backend.
+- [FEAT-007] Ajustes visuales sobre la pantalla de registro de FEAT-006: paneles de ícono y
+  formulario al 50/50 (antes 40/60), radio de borde de 1rem en tarjeta, inputs, botón y banner,
+  ancho fijo del formulario con separación uniforme de 13px y botón "Crear cuenta" centrado, y
+  ancho responsive de la tarjeta — 70% del contenedor entre 640px y 1199px, 40% de 1200px en
+  adelante, conservando el techo de `max-w-4xl` y el ancho completo por debajo de 640px. El
+  breakpoint se declara en `rem` (`min-[75rem]:`) y no en px: Tailwind 4 ordena las variantes
+  `min-width` por valor numérico pero no compara unidades distintas, así que declararlo en px lo
+  emitiría antes del `40rem` de `sm:` y el 40% nunca se aplicaría (ver `docs/adr/adr-007-*`). Sin
+  cambios de comportamiento ni de backend.
+- [FEAT-007] Token semántico `--color-overlay` en `globals.css` (con su variante para tema claro) y
+  su mapeo `overlay` en `tailwind.config.ts`, consumido por el scrim del indicador de carga.
+
+### Changed
+
+- [FEAT-007] `Loader` pasa a ser un overlay de pantalla completa (`fixed inset-0` con scrim
+  semitransparente y `z-[100]`, por encima del `z-50` de `ThemeToggle`) en lugar de un spinner en
+  flujo. Es un componente compartido, así que el cambio también alcanza a la pantalla de
+  transacciones (`TransactionForm`) — excepción de alcance intencional y confirmada. Queda
+  registrada la limitación conocida de que el toggle de tema sigue siendo alcanzable con Tab por
+  debajo del scrim: cerrarlo pide `inert` o un focus trap, patrón que el proyecto no usa
+  (ver `docs/adr/adr-006-*` y `docs/ddw/security/threat-FEAT-007.md`, R-02).
 
 ### Fixed
 
