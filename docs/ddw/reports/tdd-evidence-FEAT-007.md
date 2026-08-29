@@ -231,3 +231,184 @@ Archivos tocados en el bloque (ambas rondas): `frontend/src/components/RegisterF
 `frontend/src/__tests__/components/RegisterForm.test.tsx`, y `frontend/src/components/AuthLayout.tsx`
 (solo la línea de `min-w-0`, documentada arriba como decisión preventiva pendiente de verificación
 visual). `FormField.tsx`, `useRegisterUser.ts` y `Loader.tsx` no se tocaron.
+
+## Block 3 — Loader: overlay de pantalla completa (cambio global)
+
+Tres rondas. La ronda 1 implementó el bloque; la ronda 2 atendió el FAIL del `arch-auditor` más dos
+decisiones de diseño del usuario; la ronda 3 cerró el FAIL que ambos revisores levantaron sobre los
+guards de tokens.
+
+### Ronda 1 — implementación del overlay
+
+Se escribieron primero los 3 tests nuevos de `Loader.test.tsx` (los 4 preexistentes de FEAT-005/006
+no se tocaron) y se corrió `pnpm test -- src/__tests__/components/Loader.test.tsx` contra la
+implementación sin tocar:
+
+```
+● Loader › muestra el spinner dentro de un overlay que cubre toda la pantalla cuando visible es true
+
+  expect(element).toHaveClass("fixed inset-0 bg-black/50")
+
+  Expected the element to have class:
+    fixed inset-0 bg-black/50
+  Received:
+    h-8 w-8 animate-spin rounded-full border-4 border-accent-blue border-t-transparent
+
+  at Object.toHaveClass (src/__tests__/components/Loader.test.tsx:35:21)
+
+Tests: 1 failed, 6 passed, 7 total
+```
+
+La aserción que rompió es `expect(overlay).toHaveClass("fixed", "inset-0", "bg-black/50")` sobre
+`container.firstElementChild`: antes del cambio ese primer hijo era el spinner, no un overlay.
+
+Los otros 2 tests del bloque pasaban antes de la implementación **por diseño del spec**, que los
+declara textualmente regresión: `test-block3-loader-spinner-preserved` ("regresión explícita:
+confirma que el spinner interno no cambió, protege a `TransactionForm.test.tsx`") y
+`test-block3-loader-hidden-no-error-residual` ("regresión del comportamiento ya existente"). El
+`module-verifier` evaluó ese argumento contra el texto del spec y lo confirmó legítimo: el bloque
+introduce exactamente una unidad de comportamiento nuevo (el overlay) y exactamente un test falló
+por ella.
+
+### Ronda 2 — FAIL del `arch-auditor` + dos decisiones del usuario
+
+El `arch-auditor` devolvió BLOCKED porque los 3 `it()` estaban nombrados en prosa, mientras los
+Bloques 1 y 2 usan el identificador del spec como nombre del `it()`. No es cosmético: el parser
+F-VER-06 de `validate_verify.py` solo reconoce identificadores que empiezan con `test`, y este
+proyecto ya gastó un loop correctivo VERIFY→CODE→PLAN por lo mismo en FEAT-004 y otro en FEAT-005.
+La instrucción equivocada fue del orquestador al despachar la ronda 1.
+
+Además el usuario decidió dos cambios sobre el diseño aprobado: usar un token semántico
+(`--color-overlay`) en vez de `bg-black/50`, y subir el overlay a `z-[100]` porque `z-50` empataba
+con `ThemeToggle` y dejaba la mitigación R-01 del threat model dependiendo del orden del DOM.
+
+| Punto | Rojo previo |
+|---|---|
+| 1 — rename a los IDs del spec | **Sin rojo, y no se fabricó ninguno**: un rename puro no puede producirlo |
+| 2+3+4 — aserción completa, token, `z-[100]` | Consolidados en un rojo real (abajo) |
+| 5 — transición `true → false` | Rojo real en la primera mitad (abajo); la mitad de la transición no falló, ver nota |
+
+```
+● Loader › test-block3-loader-fullscreen-overlay
+
+  expect(element).toHaveClass("fixed inset-0 z-[100] flex items-center justify-center bg-overlay/50")
+
+  Expected the element to have class:
+    fixed inset-0 z-[100] flex items-center justify-center bg-overlay/50
+  Received:
+    fixed inset-0 z-50 flex items-center justify-center bg-black/50
+
+  at Object.toHaveClass (src/__tests__/components/Loader.test.tsx:35:21)
+
+● Loader › test-block3-loader-hidden-no-error-residual
+
+  expect(element).toHaveClass("fixed bg-overlay/50")
+
+  Expected the element to have class:
+    fixed bg-overlay/50
+  Received:
+    fixed inset-0 z-50 flex items-center justify-center bg-black/50
+
+  at Object.toHaveClass (src/__tests__/components/Loader.test.tsx:67:41)
+
+Tests: 2 failed, 5 passed, 7 total
+```
+
+**Tres declaraciones de ausencia de rojo, hechas por el implementer sin que se le pidieran, y
+verificadas contra disco por el `module-verifier`:**
+
+1. El punto 1 (rename) no tiene rojo asociado y no se inventó uno.
+2. De las 3 clases agregadas a la aserción del overlay en el punto 2 (`flex`, `items-center`,
+   `justify-center`), ninguna produjo rojo por sí sola: ya estaban en la implementación de la ronda
+   1. Cierran un hueco de aserción — la mitad "spinner centrado" de AC-12 — no dirigen código nuevo.
+   El propio `Received` citado arriba lo demuestra: contiene esas tres clases. El rojo real de ese
+   test lo produjeron `z-[100]` y `bg-overlay/50`.
+3. La mitad de transición del punto 5 (`rerender` + `toBeEmptyDOMElement`) no falló antes, porque el
+   `return null` existía desde antes del ticket. Es cobertura de regresión de lo que el spec describe
+   en su sección de manejo de errores ("o cambia de `true` a `false`") y que ningún test ejercitaba;
+   no se reclama rojo genuino para esa mitad.
+
+**Limitación de esta ronda, señalada por el `module-verifier`:** los `Received` de la ronda 2 no son
+verificables contra disco, porque la ronda 1 nunca quedó en git ni dejó blob recuperable
+(`git stash list` vacío, `reflog` en el último commit del Bloque 2, y ninguno de los 18 dangling
+blobs de `git fsck` contiene `bg-black/50`). Se aceptaron sobre evidencia circunstancial fuerte — el
+`Received` coincide literalmente con el string que el spec dicta en su línea 178, incluido el orden,
+y el código de la ronda 2 es ese mismo string con dos tokens sustituidos — pero es una cadena de
+confianza, no una verificación directa. **Riesgo de proceso a recordar: una ronda correctiva sobre
+working tree sin registrar en git destruye la línea base de verificación de la ronda siguiente.**
+
+### Ronda 3 — el token nuevo dejó obsoletos dos guards que ya existían
+
+Ambos revisores levantaron el mismo FAIL, que ni el implementer ni el orquestador habían visto:
+`globals.test.ts` (mapas `DARK_TOKENS` / `LIGHT_TOKENS`) y `tailwind.config.test.ts` (array
+`SEMANTIC_TOKENS`) existen desde FEAT-002 para guardar exactamente los dos archivos que la ronda 2
+modificó, y no se extendieron. Ambas suites son de **inclusión, no de exactitud**: iteran sobre su
+propia lista esperada, así que pasaban en verde por omisión. Los títulos decían "los 10 tokens"
+cuando ya había 11.
+
+Agregar una entrada a una allowlist sobre un token ya escrito pasa en verde de una, así que no hay
+rojo natural. En vez de fabricarlo, se demostró empíricamente que el guard ahora muerde, mutando
+temporalmente los archivos fuente y midiendo el antes y el después con la misma mutación:
+
+**Con `--color-overlay` borrado de `.light` y el mapeo `overlay` borrado de `tailwind.config.ts`,
+con los guards SIN corregir:**
+
+```
+Test Suites: 2 passed, 2 total
+Tests:       16 passed, 16 total
+```
+
+Verde con el token borrado de ambos archivos — la brecha, medida.
+
+**Misma mutación, con los guards YA corregidos:**
+
+```
+● globals.css › define los 11 tokens bajo .light con los valores de modo claro
+  expect(received).toMatch(expected)
+  Expected pattern: /--color-overlay:\s*63 61 77;/
+  Received string:  "... --color-error: 220 38 38; /* #DC2626 */ "
+  at src/__tests__/app/globals.test.ts:55:26
+
+● tailwind.config.ts › expone el token semántico overlay como color de Tailwind
+  expect(received).toBe(expected)
+  Expected: "rgb(var(--color-overlay) / <alpha-value>)"
+  Received: undefined
+  at src/__tests__/app/tailwind.config.test.ts:24:28
+
+Test Suites: 2 failed, 2 total
+Tests:       2 failed, 15 passed, 17 total
+```
+
+Mismo estado del código fuente, resultado opuesto: el delta de cobertura lo aportan esas 5 líneas.
+
+Las mutaciones se revirtieron y se verificó por checksum (`globals.css` MD5 `222bca30…088d61` y
+`tailwind.config.ts` MD5 `2b14c7b0…47a21e5c`, idénticos a antes de mutar) y por `git diff --stat`,
+que muestra `globals.css` con 2 inserciones y `tailwind.config.ts` con 1, **sin ninguna deleción**.
+
+**Alcance de lo que este guard cubre, y lo que no:** queda cubierta la regresión concreta que motivó
+la ronda (que alguien borre `--color-overlay`). Las suites siguen siendo de inclusión, así que un
+token *futuro* que se agregue a `globals.css` y no se sume a estos mapas volverá a pasar inadvertido.
+Cerrar eso pediría una aserción de conteo o de igualdad de conjuntos, fuera del alcance de este
+bloque.
+
+### Mapeo identificador del spec → `it()` real
+
+| Identificador del spec | `it("...")` final |
+|---|---|
+| `test-block3-loader-fullscreen-overlay` | `test-block3-loader-fullscreen-overlay` |
+| `test-block3-loader-spinner-preserved` | `test-block3-loader-spinner-preserved` |
+| `test-block3-loader-hidden-no-error-residual` | `test-block3-loader-hidden-no-error-residual` |
+
+### Estado final del bloque
+
+- Suite completa de `frontend`: **18/18 suites, 92/92 tests** en verde (88 antes del bloque, +3 tests
+  nuevos de `Loader`, +1 caso generado por `it.each` al sumar `overlay` a `SEMANTIC_TOKENS`).
+- `npx tsc --noEmit` y `pnpm lint` (`eslint .`): limpios.
+- `TransactionForm.tsx` y `TransactionForm.test.tsx` sin modificar; sin regresión.
+- Archivos tocados en las 3 rondas: `frontend/src/components/Loader.tsx`,
+  `frontend/src/__tests__/components/Loader.test.tsx`, `frontend/src/app/globals.css`,
+  `frontend/tailwind.config.ts`, `frontend/src/__tests__/app/globals.test.ts`,
+  `frontend/src/__tests__/app/tailwind.config.test.ts`.
+- Desviaciones respecto del spec, documentadas en el ADR del bloque: `z-50` → `z-[100]`,
+  `bg-black/50` → `bg-overlay/50`, y la sección "Files" del Bloque 3, que no contemplaba
+  `globals.css` ni `tailwind.config.ts`.

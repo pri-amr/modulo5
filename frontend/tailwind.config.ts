@@ -16,6 +16,7 @@ const config: Config = {
         "accent-blue": "rgb(var(--color-accent-blue) / <alpha-value>)",
         success: "rgb(var(--color-success) / <alpha-value>)",
         error: "rgb(var(--color-error) / <alpha-value>)",
+        overlay: "rgb(var(--color-overlay) / <alpha-value>)",
       },
       borderRadius: {
         field: "0.375rem",

@@ -26,4 +26,50 @@ describe("Loader", () => {
 
     expect(screen.getByRole("status")).toHaveClass("border-accent-blue");
   });
+
+  it("test-block3-loader-fullscreen-overlay", () => {
+    const { container } = render(<Loader visible />);
+
+    const overlay = container.firstElementChild;
+
+    expect(overlay).toHaveClass(
+      "fixed",
+      "inset-0",
+      "z-[100]",
+      "flex",
+      "items-center",
+      "justify-center",
+      "bg-overlay/50",
+    );
+    expect(overlay).toContainElement(screen.getByRole("status"));
+  });
+
+  it("test-block3-loader-spinner-preserved", () => {
+    render(<Loader visible />);
+
+    const spinner = screen.getByRole("status");
+
+    expect(spinner).toHaveAttribute("aria-label", "Cargando");
+    expect(spinner).toHaveClass(
+      "h-8",
+      "w-8",
+      "animate-spin",
+      "rounded-full",
+      "border-4",
+      "border-accent-blue",
+      "border-t-transparent",
+    );
+  });
+
+  it("test-block3-loader-hidden-no-error-residual", () => {
+    const { container, rerender } = render(<Loader visible />);
+
+    expect(container.firstElementChild).toHaveClass("fixed", "bg-overlay/50");
+    expect(screen.getByRole("status")).toBeInTheDocument();
+
+    expect(() => rerender(<Loader visible={false} />)).not.toThrow();
+
+    expect(container).toBeEmptyDOMElement();
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  });
 });

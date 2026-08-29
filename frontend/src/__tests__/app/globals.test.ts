@@ -14,6 +14,7 @@ const DARK_TOKENS: Record<string, string> = {
   "--color-accent-blue": "110 168 255",
   "--color-success": "125 209 129",
   "--color-error": "255 82 82",
+  "--color-overlay": "5 5 10",
 };
 
 const LIGHT_TOKENS: Record<string, string> = {
@@ -27,6 +28,7 @@ const LIGHT_TOKENS: Record<string, string> = {
   "--color-accent-blue": "55 107 203",
   "--color-success": "30 142 62",
   "--color-error": "220 38 38",
+  "--color-overlay": "63 61 77",
 };
 
 const extractBlock = (css: string, selector: string): string => {
@@ -38,7 +40,7 @@ const extractBlock = (css: string, selector: string): string => {
 describe("globals.css", () => {
   const css = readFileSync(GLOBALS_CSS_PATH, "utf-8");
 
-  it("define los 10 tokens bajo :root con los valores de modo oscuro", () => {
+  it("define los 11 tokens bajo :root con los valores de modo oscuro", () => {
     const rootBlock = extractBlock(css, ":root");
 
     Object.entries(DARK_TOKENS).forEach(([token, value]) => {
@@ -46,7 +48,7 @@ describe("globals.css", () => {
     });
   });
 
-  it("define los 10 tokens bajo .light con los valores de modo claro", () => {
+  it("define los 11 tokens bajo .light con los valores de modo claro", () => {
     const lightBlock = extractBlock(css, "\\.light");
 
     Object.entries(LIGHT_TOKENS).forEach(([token, value]) => {
