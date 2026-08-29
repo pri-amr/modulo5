@@ -11,6 +11,7 @@ const SEMANTIC_TOKENS = [
   "accent-blue",
   "success",
   "error",
+  "overlay",
 ];
 
 describe("tailwind.config.ts", () => {

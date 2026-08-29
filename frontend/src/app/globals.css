@@ -15,6 +15,7 @@
   --color-accent-blue: 110 168 255; /* #6EA8FF azul/celeste */
   --color-success: 125 209 129; /* #7DD181 */
   --color-error: 255 82 82; /* #FF5252 */
+  --color-overlay: 5 5 10; /* #05050A scrim más profundo que --color-bg */
 }
 
 .light {
@@ -28,6 +29,7 @@
   --color-accent-blue: 55 107 203; /* #376BCB azul/celeste, mismo tono que el Loader (RNF-12) */
   --color-success: 30 142 62; /* #1E8E3E */
   --color-error: 220 38 38; /* #DC2626 */
+  --color-overlay: 63 61 77; /* #3F3D4D gris pizarra: velo suave en tema claro */
 }
 
 body {
