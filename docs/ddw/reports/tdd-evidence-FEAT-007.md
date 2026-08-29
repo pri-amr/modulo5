@@ -412,3 +412,261 @@ bloque.
 - Desviaciones respecto del spec, documentadas en el ADR del bloque: `z-50` → `z-[100]`,
   `bg-black/50` → `bg-overlay/50`, y la sección "Files" del Bloque 3, que no contemplaba
   `globals.css` ni `tailwind.config.ts`.
+
+## Block 4 — AuthLayout: ancho responsive de la tarjeta
+
+Bloque agregado después de que los Bloques 1-3 ya estaban commiteados, por el loop correctivo
+CODE→PLAN→DEFINE→PLAN que introdujo FR-12/AC-13 (ancho de la tarjeta 70% entre 640px y 1199px, 40%
+desde 1200px). Una sola ronda de implementación.
+
+Archivos tocados: `frontend/src/components/AuthLayout.tsx` y
+`frontend/src/__tests__/components/AuthLayout.test.tsx`. Ningún otro.
+
+### El rojo, por test
+
+Comando, corrido desde `frontend/` antes de tocar `AuthLayout.tsx`:
+`npx jest src/__tests__/components/AuthLayout.test.tsx`
+
+Resultado de esa corrida: `Tests: 2 failed, 8 passed, 10 total`.
+
+**1. `test-block4-card-width-responsive` — ROJO.** Falló en `AuthLayout.test.tsx:99`, sobre la
+aserción `expect(card).toHaveClass("sm:w-[70%]")`:
+
+```
+expect(element).toHaveClass("sm:w-[70%]")
+Expected the element to have class:
+  sm:w-[70%]
+Received:
+  flex w-full max-w-4xl overflow-hidden rounded-[1rem] border border-line bg-surface sm:w-[40%]
+```
+
+**2. `test-block4-card-width-cascade-order` — ROJO.** Falló en `AuthLayout.test.tsx:112`, sobre la
+aserción `expect(emittedWidths).toContain("70%")`:
+
+```
+expect(received).toContain(expected) // indexOf
+Expected value: "70%"
+Received array: ["40%"]
+```
+
+**3. `test-block4-card-width-base-and-cap` — NO se vio en rojo, y queda declarado en vez de
+fabricar una salida.** Es el renombrado de `test-block1-card-width-desktop`: sus dos aserciones
+(`w-full`, `max-w-4xl`) son sobre clases que el bloque deliberadamente no toca, así que ya eran
+ciertas antes del cambio y es imposible que se vieran rojas. Su valor es de regresión —`max-w-4xl`
+no tiene cobertura en ningún otro test del archivo, verificado por grep sobre todo
+`frontend/src/__tests__/`: una sola aparición, la de este test— y no de TDD. Presentarlo como rojo
+habría sido mentir.
+
+Los tres `Received` de arriba fueron **reproducidos independientemente por el `ddw-module-verifier`**,
+que revirtió `AuthLayout.tsx` a `sm:w-[40%]`, volvió a correr la suite y confirmó que coinciden
+carácter por carácter con lo que produce el código. Dejó el archivo con el mismo MD5 con el que lo
+encontró.
+
+### Verificación por mutación del test de cascada
+
+`test-block4-card-width-cascade-order` es el único test automatizable que valida que la clase
+*llegue a aplicarse*, y no solo que esté escrita. Para no darlo por bueno, se lo sometió a mutación
+—primero el implementer, después el verifier de forma independiente— mutando la clase de
+`auth-layout-card` y revirtiendo después:
+
+| Mutación | `cascade-order` | `responsive` | ¿Atrapada? |
+|---|---|---|---|
+| `min-[1200px]:w-2/5` | 🔴 (`indexOf("40%")` = -1) | 🔴 | Sí |
+| `min-[1200px]:w-[40%]` | 🔴 (`indexOf("40%")` = 0, no > 1) | 🔴 | Sí |
+| `xl:w-[40%]` | 🟢 pasa | 🔴 | Sí, por el otro test |
+
+Salida textual de la primera mutación:
+
+```
+● AuthLayout › test-block4-card-width-cascade-order
+expect(received).toBeGreaterThan(expected)
+Expected: > 1
+Received:   -1
+```
+
+**El reparto de roles entre los dos tests es deliberado y quedó confirmado por la matriz.** El
+test de cascada atrapa 2 de las 3 mutaciones: con `xl:w-[40%]` se queda en verde, porque `xl:` es
+`80rem` —misma unidad que `sm:`, orden de emisión correcto—. Lo que `xl:` rompe no es la cascada
+sino el corte (1280px en vez de 1200px), y eso lo detecta la aserción positiva de
+`test-block4-card-width-responsive`. Ninguno de los dos cubre las tres por sí solo; el par sí. Es
+exactamente lo que el spec describe: el guard es la aserción positiva sobre `min-[75rem]:w-[40%]`,
+y la cascada verifica que la clase llegue a aplicarse.
+
+### Un falso verde encontrado y cerrado durante la implementación
+
+La primera versión de `test-block4-card-width-cascade-order` afirmaba únicamente el orden
+(`indexOf("40%") > indexOf("70%")`), sin verificar presencia. Antes del cambio `emittedWidths` era
+`["40%"]`, así que `indexOf("40%")` = 0 e `indexOf("70%")` = -1, y `0 > -1` **pasaba en verde con el
+diseño sin implementar**. Se agregó `expect(emittedWidths).toContain("70%")`, que es precisamente la
+aserción sobre la que el test falla al revertir. Sin ella el test no habría tenido rojo real.
+
+### Hueco residual conocido, no cerrado
+
+El test compara **primeras** ocurrencias (`indexOf`), no cuál regla gana por ser la última emitida.
+Si un tercer tramo re-emitiera `width: 70%` después del bucket del 40% —por ejemplo agregando
+`min-[100rem]:w-[70%]`— el array sería `["70%","40%","70%"]`: `toContain` pasa e
+`indexOf("40%")`=1 > `indexOf("70%")`=0, y el test quedaría verde aunque en viewports muy anchos
+ganara el 70%. Ninguna mutación realista lo alcanza y ningún requisito actual lo pide, pero queda
+registrado: un `lastIndexOf` en la comparación lo cerraría. Detectado por el `ddw-module-verifier`.
+
+### Mapeo identificador del spec → `it()` real
+
+| Identificador del spec | `it("...")` final | Nota |
+|---|---|---|
+| `test-block4-card-width-responsive` | `test-block4-card-width-responsive` | nuevo |
+| `test-block4-card-width-cascade-order` | `test-block4-card-width-cascade-order` | nuevo |
+| `test-block4-card-width-base-and-cap` | `test-block4-card-width-base-and-cap` | **renombrado desde `test-block1-card-width-desktop`** |
+
+El rename queda asentado acá porque el spec lo exige explícitamente: el test dejó de afirmar
+`sm:w-[40%]`, que FR-12 vuelve falso, y pasó a afirmar `w-full` y `max-w-4xl`. No se eliminó porque
+era la única cobertura de `max-w-4xl`.
+
+### Estado final del bloque
+
+- Suite completa de `frontend`: **18/18 suites, 94/94 tests** en verde (92 antes del bloque, +2
+  tests nuevos; el renombrado no suma).
+- `npx tsc --noEmit` y `npx eslint .`: limpios. Confirmado de forma independiente por el
+  `ddw-module-verifier`.
+- Sin dependencias nuevas: `tailwindcss ^4.3.3` ya estaba en `frontend/package.json`, así que el
+  `import { compile } from "tailwindcss"` del test no agrega nada.
+- El único `sm:w-[40%]` que queda en código es la aserción negativa intencional
+  (`AuthLayout.test.tsx:101`); el resto de las apariciones son documentos.
+- Desviaciones respecto del spec: ninguna en el código. Dos asunciones del implementer sobre la
+  forma de codificar la aserción de orden y sobre derivar las clases del DOM renderizado en vez del
+  fuente; el spec permite ambas y el verifier las validó.
+
+### Verificación manual pendiente
+
+`test-manual-block4-salto-1200px` requiere navegador real —jsdom no computa layout— y queda
+pendiente de ejecución por el usuario. Es la única validación de que la tarjeta pasa de ≈817px a
+≈467px al cruzar 1200px y, sobre todo, de que **por debajo de 1200px no queda en 40%**, que es el
+síntoma que delataría el defecto de ordenamiento de media queries.
+
+### Ronda correctiva 2 — se cierra el agujero del breakpoint
+
+El `ddw-arch-auditor` dio BLOCKED sobre la ronda 1 con un FAIL: el campo `condition` de
+`MediaBlock`/`WidthMedia` se calculaba y se descartaba en la línea del `.map(entry => entry.width)`.
+No era solo código muerto — era el dato que faltaba. **El test de cascada verificaba el ORDEN pero
+no en QUÉ breakpoint entraba el 40%.** Lo demostró compilando la mutación `xl:w-[40%]`:
+
+```
+MUT xl | media order: ["(width >= 40rem)", "(width >= 80rem)"] | widths: [100%, 70%, 40%]
+```
+
+Orden correcto, 40% después del 70% → el test pasaba en verde con el corte en 1280px en vez de
+1200px, incumpliendo FR-12.
+
+Corrección aplicada (única, sobre `AuthLayout.test.tsx`; el código de producción no se tocó y se
+verificó por hash antes y después):
+
+```ts
+const wideCondition = widthMedia.find((entry) => entry.width === "40%")?.condition;
+...
+expect(wideCondition).toContain("75rem");
+```
+
+**El rojo de la mutación `xl:w-[40%]`**, reportado por el implementer y después **reproducido
+textualmente por el auditor de forma independiente**:
+
+```
+expect(received).toContain(expected) // indexOf
+
+Expected substring: "75rem"
+Received string:    "(width >= 80rem)"
+
+> 125 |     expect(wideCondition).toContain("75rem");
+      |                           ^
+Tests: 1 failed, 9 skipped, 10 total
+```
+
+Las dos aserciones previas **pasaron** bajo esa mutación: con `xl:`, Tailwind emite `["70%","40%"]`
+con `idx40=1 > idx70=0`. Solo la aserción nueva la mata. Eso confirma que el agujero era real y no
+teórico.
+
+### Matriz de mutación final, ejecutada por el auditor
+
+| Mutación | Resultado | Aserción que la mata |
+|---|---|---|
+| `xl:w-[40%]` | 🔴 | `:125` (única) |
+| `min-[80rem]:w-[40%]` | 🔴 | `:125` (única) |
+| `min-[1200px]:w-[40%]` | 🔴 | `:124` (orden invertido) |
+| `min-[1200px]:w-2/5` | 🔴 | `:124` (`idx40=-1`) |
+| `min-[75rem]:w-2/5` | 🔴 | `:124` (`idx40=-1`) |
+
+**5/5 muertas. Ninguna mutación que rompa FR-12 sobrevive a nivel de suite.** Esto supera la tabla
+de la ronda 1, que registraba 2 de 3 y delegaba `xl:` en el otro test.
+
+### Dos propiedades verificadas, no asumidas
+
+**`wideCondition === undefined` es inalcanzable.** El `?.` lo permitiría sintácticamente, pero:
+`find(e => e.width === "40%")` devuelve `undefined` ⟺ no hay entrada con width `"40%"` ⟺
+`emittedWidths.indexOf("40%") === -1`, y con `idx40 = -1` la línea `:124` **siempre** falla primero,
+porque ningún índice es `< -1`. Nunca se llega a `expect(undefined).toContain(...)`. Comprobado con
+`min-[1200px]:w-2/5`, que efectivamente produce `wideCondition: undefined` y falla en `:124`.
+
+**La desviación sobre `require.resolve` es cierta, no plausible.** El implementer no pudo aplicar
+`require.resolve("tailwindcss/index.css")` porque `next/jest` instala un `moduleNameMapper` que
+redirige todo `.css` a `styleMock.js`. El auditor lo ejecutó dentro de Jest y confirmó los tres
+puntos: `require.resolve` y `createRequire(__filename).resolve` devuelven **ambos** el `styleMock.js`
+(Jest parchea `createRequire`; su `toString()` muestra una arrow function de Jest, no la nativa de
+Node), y pasarlo a `compile()` reproduce ``CssSyntaxError: Invalid declaration: `"use strict"` ``.
+La solución adoptada —derivar la entrada del manifiesto vía `tailwindPackage.exports["."].style`—
+funciona **por diseño y no por casualidad**: el `moduleNameMapper` solo intercepta CSS y assets, y
+`.json` no está mapeado. Si esa clave desapareciera en una versión futura, rompe con un `TypeError`
+en tiempo de carga del módulo: no es un mensaje de dominio, pero falla ruidosa y temprano, nunca
+produce un verde silencioso.
+
+### WARN conocido y no cerrado
+
+`:125` usa `toContain("75rem")`, que es match de **subcadena**: `min-[175rem]:w-[40%]` produce
+`"(width >= 175rem)"`, que contiene `"75rem"`, y las tres aserciones de `cascade-order` pasarían con
+un breakpoint de 2800px. **A nivel de suite la mutación sí se atrapa**, en `:110`
+(`toHaveClass("min-[75rem]:w-[40%]")`), que fija la clase exacta. Es defensa en profundidad
+deliberada: `:110` fija la clase, `:125` fija la semántica compilada. Endurecerlo a
+`toContain("width >= 75rem")` mataría `175rem` sin depender de `:110`, a cambio de más acoplamiento
+a la forma literal que emite Tailwind. Se deja como está.
+
+El hueco del `indexOf` sobre primeras ocurrencias, registrado en la ronda 1, sigue abierto en los
+mismos términos.
+
+### Estado final tras la ronda 2
+
+- Suite completa de `frontend`: **18/18 suites, 94/94 tests** en verde. Mismos números que la ronda
+  1: no se agregaron tests, se endureció uno existente. Confirmado de forma independiente por el
+  auditor.
+- `npx tsc --noEmit` y `npx eslint .`: exit 0, confirmados por el auditor.
+- `AuthLayout.tsx` sin modificar en esta ronda, verificado por hash idéntico antes y después
+  (blob de git `ddb36e18162e240df863b810ccd822b28bde47c1`).
+- Veredicto final del `ddw-arch-auditor`: **APPROVED**, 0 FAILs.
+
+### Nota de proceso: colisión de mutaciones
+
+En la ronda 1 se despacharon el `ddw-module-verifier` y el `ddw-arch-auditor` **en paralelo**, y
+ambos mutan archivos para verificar guards. El auditor observó `AuthLayout.tsx` pasar por
+`sm:w-[40%]`, `min-[1200px]:w-[40%]`, `min-[1200px]:w-2/5` y `xl:w-[40%]` en ~2 minutos, y dos de
+sus corridas dieron rojo por eso y no por el código. Ningún resultado quedó comprometido —el archivo
+volvió a su contenido correcto y se verificó por hash— pero el riesgo de commitear un mutante fue
+real. **Error de despacho del orquestador, no de los agentes.** A partir de la ronda 2 los revisores
+que mutan archivos se despachan de a uno.
+
+### Diagnóstico de Prettier, para cerrar dos versiones contradictorias del expediente
+
+La ronda 1 lo atribuyó a `.prettierrc.json` (`tabWidth: 4`, `trailingComma: "none"`); el implementer
+de la ronda 2 lo atribuyó a CRLF contra `endOfLine: "lf"` y afirmó que **no hay** `.prettierrc`.
+Medición aislada del auditor:
+
+| Configuración | `AuthLayout.tsx` | `AuthLayout.test.tsx` |
+|---|---|---|
+| `.prettierrc` + LF por defecto (estado real) | falla | falla |
+| `--no-config --end-of-line lf` | falla | falla |
+| `--no-config --end-of-line crlf --tab-width 4` | falla | falla |
+| `--no-config --end-of-line crlf --trailing-comma none` | pasa | falla |
+| `--no-config --end-of-line crlf` (sin ningún factor) | pasa | pasa |
+
+**Concurren dos causas independientes, y cada explicación por separado es incompleta:** los archivos
+son CRLF y `endOfLine` por defecto es `"lf"`; y `.prettierrc.json` existe **en la raíz del repo** con
+`tabWidth: 4` y `trailingComma: "none"`. La afirmación de que no hay `.prettierrc` es falsa: está un
+nivel arriba de `frontend/`, donde el implementer buscó. No hay `.gitattributes` en ninguno de los
+dos niveles, lo que explica los CRLF. Prettier no es gate en ningún lado (no hay `.github/`, ni
+`.husky/`, ni `lint-staged`; `pnpm lint` es solo `eslint .`), y los 41 archivos fallan ya en HEAD.
+Deuda preexistente, ticket propio.

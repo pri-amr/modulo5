@@ -6,9 +6,10 @@ type AuthLayoutProps = {
 
 const AuthLayout = ({ children }: AuthLayoutProps): React.JSX.Element => (
   <div className="flex min-h-screen w-full items-center justify-center px-4 py-8">
+    {/* 75rem (=1200px) y no min-[1200px]: Tailwind 4 no compara px con el 40rem de sm:, emite el bucket px primero y el 40% quedaría muerto (ADR-007). */}
     <div
       data-testid="auth-layout-card"
-      className="flex w-full max-w-4xl overflow-hidden rounded-[1rem] border border-line bg-surface sm:w-[40%]"
+      className="flex w-full max-w-4xl overflow-hidden rounded-[1rem] border border-line bg-surface sm:w-[70%] min-[75rem]:w-[40%]"
     >
       <div
         data-testid="auth-layout-icon-panel"
