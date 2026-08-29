@@ -5,7 +5,7 @@
 | Ticket | FEAT-007 |
 | Tracker | none |
 | Date | 2026-08-27 |
-| PRD loops | 1 |
+| PRD loops | 2 |
 | Loops since last human decision | 0 |
 
 ## Context and Problem
@@ -27,10 +27,16 @@ visuales concretos al revisar el resultado:
    todo el árbol.
 6. El indicador de carga (`Loader`) se muestra embebido en el flujo del formulario (un spinner
    chico "arriba del botón") en vez de cubrir toda la pantalla mientras dura la carga.
+7. La tarjeta ocupa el 40% del ancho del viewport en todo el rango de escritorio, y en pantallas de
+   tamaño intermedio queda demasiado angosta: entre 640px y 1200px el 40% deja el formulario y el
+   logo apretados en menos de la mitad del espacio disponible.
 
-Este ticket corrige los seis puntos sobre la pantalla ya construida, sin tocar ninguna regla de
+Este ticket corrige los siete puntos sobre la pantalla ya construida, sin tocar ninguna regla de
 validación del formulario. El punto 6 toca el componente compartido `Loader.tsx`, por lo que su
-corrección es intencionalmente global (ver Out of Scope).
+corrección es intencionalmente global (ver Out of Scope). El punto 7 se sumó al alcance después de
+que los tres bloques originales ya estaban implementados, mediante un loop correctivo
+CODE → PLAN → DEFINE: el ancho externo de la tarjeta figuraba explícitamente en Out of Scope en la
+primera versión de este PRD.
 
 ## Goals
 
@@ -40,6 +46,8 @@ corrección es intencionalmente global (ver Out of Scope).
   formulario en desktop.
 - Que la tarjeta, los inputs, el botón y el banner de error tengan un radio de borde consistente de
   1rem, sin afectar el radio de borde de ninguna otra pantalla de la aplicación.
+- Que la tarjeta aproveche mejor el espacio disponible en pantallas intermedias, sin volverse
+  desproporcionada en monitores grandes.
 
 ## Functional Requirements
 
@@ -63,6 +71,9 @@ corrección es intencionalmente global (ver Out of Scope).
 - FR-11: El sistema debe mostrar el indicador de carga (`Loader`) como un overlay que cubre toda la
   pantalla, con un fondo semitransparente oscuro y el spinner centrado, en vez de embebido en el
   flujo del formulario que lo usa.
+- FR-12: El sistema debe dar a la tarjeta de la pantalla de registro un ancho del 70% del viewport
+  en viewports de 640px hasta 1199px inclusive, y del 40% en viewports de 1200px o más. Por debajo
+  de 640px el ancho no cambia respecto de FEAT-006 (ancho completo, con el panel del ícono oculto).
 
 ## Non-Functional Requirements
 
@@ -100,6 +111,9 @@ corrección es intencionalmente global (ver Out of Scope).
 - AC-12 (FR-11): WHILE una operación de carga está en curso (registro u otro formulario que use
   `Loader`), THE sistema SHALL mostrar un overlay de fondo semitransparente oscuro cubriendo todo
   el viewport, con el spinner centrado encima.
+- AC-13 (FR-12): WHEN la pantalla de registro se renderiza en un viewport de 640px hasta 1199px
+  inclusive, THE sistema SHALL mostrar la tarjeta con un ancho del 70% del viewport; y WHEN se
+  renderiza en un viewport de 1200px o más, THE sistema SHALL mostrarla con un ancho del 40%.
 
 ## Out of Scope
 
@@ -107,9 +121,16 @@ corrección es intencionalmente global (ver Out of Scope).
   resuelto en FEAT-006, no se toca en este ticket.
 - Cambiar el token compartido `rounded-field` (0.375rem) en `tailwind.config.ts`: permanece sin
   modificar; `TransactionForm.tsx` (pantalla de transacciones) sigue usándolo sin cambios.
-- El ancho total de la tarjeta respecto del viewport (sigue siendo 40% en ≥640px, valor de
-  FEAT-006): este ticket solo cambia la proporción interna entre el panel del ícono y el panel de
-  contenido, no el ancho externo de la tarjeta.
+- La proporción interna 50/50 entre el panel del ícono y el panel de contenido (FR-01/AC-01) no se
+  revisa al cambiar el ancho externo de la tarjeta: con la tarjeta al 70% el panel del ícono
+  simplemente se ve más grande en ese rango, y eso es aceptado. Decisión explícita del usuario al
+  sumar FR-12.
+- El ancho de la tarjeta por debajo de 640px: sigue siendo el de FEAT-006 (ancho completo, panel del
+  ícono oculto). FR-12 solo rige de 640px para arriba.
+- El techo de ancho absoluto de la tarjeta (`max-w-4xl`, 896px, heredado de FEAT-006): permanece sin
+  modificar. Con FR-12 no llega a activarse en el rango de 640px a 1199px (70% de 1199px = 839px), y
+  de 1200px en adelante solo entra en juego en viewports muy anchos (40% supera 896px recién a
+  partir de 2240px).
 - Rediseño de cualquier otra pantalla de la aplicación (login, transacciones, etc.), **con la única
   excepción confirmada de FR-11**: el cambio de `Loader.tsx` es global por naturaleza del
   componente compartido, y por lo tanto también cambia visualmente cómo se ve la carga en
@@ -125,6 +146,8 @@ corrección es intencionalmente global (ver Out of Scope).
 |---|---|
 | Cambiar el ancho del panel del ícono de 40% a 50% podría alterar el comportamiento ya validado en el breakpoint mobile si el cambio no queda aislado al prefijo `sm:` | El cambio de ancho se aplica únicamente con clases prefijadas `sm:`, preservando el comportamiento mobile de FEAT-006 (panel del ícono oculto, contenido a ancho completo) sin modificarlo |
 | Usar un valor arbitrario de Tailwind (`rounded-[1rem]`) en vez de cambiar el token compartido `rounded-field` podría generar inconsistencia visual futura si alguien no conoce esta decisión y agrega nuevos elementos con el token viejo | Documentado explícitamente en este PRD (Out of Scope) y a documentarse en el spec; la decisión replica el mismo criterio de aislamiento ya aplicado en FEAT-006 (prop `labelSize` de `FormField` para no afectar a `TransactionForm`) |
+| FR-12 produce un salto brusco de ancho al cruzar 1200px: la tarjeta pasa de 839px (70% de 1199px) a 480px (40% de 1200px), una reducción de ~43% visible al redimensionar la ventana | Aceptado como decisión consciente del usuario, que evaluó un tramo intermedio y lo descartó. Queda registrado acá para que no se reporte más adelante como defecto ni se "corrija" sin volver a decidirlo |
+| El breakpoint de 1200px no existe en la escala de Tailwind (640/768/1024/1280/1536), así que FR-12 exige una variante arbitraria `min-[1200px]:` | Mismo criterio ya adoptado en este ticket por ADR-005 para `rounded-[1rem]` y por ADR-006 para `z-[100]`: los valores arbitrarios son patrón establecido del proyecto. A documentarse en el spec |
 
 ## Dependencies
 
