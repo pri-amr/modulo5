@@ -670,3 +670,92 @@ nivel arriba de `frontend/`, donde el implementer buscó. No hay `.gitattributes
 dos niveles, lo que explica los CRLF. Prettier no es gate en ningún lado (no hay `.github/`, ni
 `.husky/`, ni `lint-staged`; `pnpm lint` es solo `eslint .`), y los 41 archivos fallan ya en HEAD.
 Deuda preexistente, ticket propio.
+
+### `test-manual-block4-salto-1200px` — ejecutado, resultado OK
+
+**Fecha:** 2026-08-29. **Ejecutado por:** el usuario, en navegador real sobre `/register`.
+**Resultado: OK.**
+
+Lo verificado al cruzar los 1200px redimensionando la ventana:
+
+1. La tarjeta da un salto de ancho visible y brusco al cruzar el corte, en la dirección esperada
+   (más ancha por debajo, más angosta por encima).
+2. **Por debajo de 1200px la tarjeta no queda en 40%** — el síntoma que delataría el defecto de
+   ordenamiento de media queries que ADR-007 documenta, y el único que ningún test automatizado
+   puede observar porque jsdom no computa layout.
+3. El formulario y el panel del ícono siguen legibles a ambos lados del salto.
+
+Con esto **AC-13 queda verificado de punta a punta**: los tests automatizados cubren que las clases
+estén presentes y que el CSS se emita con el orden y el breakpoint correctos
+(`test-block4-card-width-responsive` y `test-block4-card-width-cascade-order`), y esta verificación
+manual cubre que el navegador efectivamente pinte el comportamiento pedido, que es lo que aquellos
+no pueden alcanzar.
+
+**Alcance honesto de este registro:** el usuario confirmó el comportamiento como correcto en
+conjunto, a ojo. No se tomaron mediciones al píxel ni capturas. Registrarlo como una medición
+instrumentada sería atribuirle una precisión que no tuvo.
+
+### Corrección: las cifras de ancho que circularon en los artefactos están mal
+
+Detectado por el `ddw-module-verifier` en VERIFY, y confirmado en el fuente. **La tarjeta tiene dos
+ancestros con `px-4`, no uno:**
+
+- `frontend/src/app/register/page.tsx:9` — `<main className="min-h-screen bg-bg px-4 py-8 text-fg">`
+- `frontend/src/components/AuthLayout.tsx:8` — `<div className="... px-4 py-8">`
+
+Son 64px descontados, no 32px. Los valores correctos:
+
+| | PRD | Spec / evidencia (rondas 1-2) | **Real** |
+|---|---|---|---|
+| Ancho a 1199px | 839px | ≈817px | **≈794px** |
+| Ancho a 1200px | 480px | ≈467px | **≈454px** |
+| Viewport donde `max-w-4xl` prevalece | 2240px | ~2272px | **2304px** |
+
+Cuenta: a 1199px, `1199 − 32 = 1167` para el wrapper de `AuthLayout`, y `1167 − 32 = 1135` para su
+content box; 70% de 1135 ≈ 794px. A 1200px, `1200 − 32 − 32 = 1136`; 40% ≈ 454px.
+
+**Esto no incumple AC-13**, que está expresado en porcentajes y se satisface igual. Lo que estaba
+mal era el criterio numérico contra el cual medir: el PRD no descontó ningún `px-4` y el spec
+descontó uno solo. El error atravesó DEFINE, PLAN, CODE y dos rondas completas de revisión sin que
+nada lo detectara, **porque ningún test mide layout** — es exactamente el hueco que el propio
+Bloque 4 documenta, materializado sobre sus propias cifras.
+
+Ni el PRD ni el spec se pueden editar desde VERIFY. La corrección queda asentada acá y en
+`docs/ddw/reports/verify-FEAT-007.md`, que es el artefacto propio de esta fase.
+
+### `test-manual-block2-*` (AC-11, wrap del banner) y efecto de `min-w-0` — ejecutados, resultado OK
+
+**Fecha:** 2026-08-29. **Ejecutado por:** el usuario, en navegador real sobre `/register`.
+**Resultado: OK.**
+
+Verificado que, ante un error de registro con mensaje largo, el banner ajusta el texto en varias
+líneas en vez de ensanchar el contenedor, y que el ancho de los inputs permanece constante con y sin
+banner visible — que es el comportamiento que AC-11 pide y el que `min-w-0` habilita.
+
+Con esto **quedan cerradas las tres verificaciones manuales pendientes del ticket**: el salto de
+1200px del Bloque 4, el wrap del banner y el efecto de `min-w-0` del Bloque 2. NFR-01 ya tenía
+constancia propia, re-derivada por el `ddw-module-verifier` compilando el preflight (`py-2` da 40px
+de alto contra el mínimo de 24px).
+
+**Alcance honesto:** confirmación visual del usuario, a ojo, sin mediciones instrumentadas ni
+capturas. Es la única verificación posible para estos criterios —jsdom no computa layout— y se
+registra por lo que es.
+
+### Corrección a `docs/ddw/reports/tests-FEAT-007.md`
+
+Ese reporte, en su sección "Nota sobre el piso de cobertura", afirma que **FEAT-004, FEAT-005 y
+FEAT-006** citan el piso del 80% como si `AGENTS.md` lo declarara. **La afirmación es injusta con dos
+de los tres.** Verificado por el `ddw-module-verifier` en VERIFY:
+
+- **FEAT-004 y FEAT-005** citan `.ddw/rules/testing.instructions.md` y aclaran explícitamente que
+  `AGENTS.md` no declara piso propio. Su atribución es correcta.
+- **Solo FEAT-006** hace la atribución incorrecta, citando `80% (AGENTS.md, "Testing" — piso del
+  proyecto)`.
+
+Lo demás de esa nota se sostiene: `AGENTS.md` no contiene "80%", ni "cobertura", ni "coverage", ni
+una sección "Testing" (grep exit 1), y `frontend/jest.config.ts` no declara `coverageThreshold`. El
+piso sigue sin respaldo en este repositorio y sigue mereciendo su ticket.
+
+La corrección se asienta acá y no editando `tests-FEAT-007.md`, porque ese reporte ya está
+commiteado y su receipt está atado a sus bytes: modificarlo invalidaría el gate `tests` que ya se
+ganó sobre él.
