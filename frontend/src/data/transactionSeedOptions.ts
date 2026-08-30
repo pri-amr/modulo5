@@ -7,7 +7,9 @@ import type { SelectOption } from "@/models/Transaction.types";
 // no los nombres del documento — el backend valida moneySourceId/categoryId contra el `_id`
 // real de Mongo (CreateTransactionService → findById).
 export const MONEY_SOURCE_OPTIONS: SelectOption[] = [
-  { value: "000000000000000000000001", label: "Efectivo" },
+    { value: "000000000000000000000001", label: "Efectivo" }
 ];
 
-export const CATEGORY_OPTIONS: SelectOption[] = [{ value: "000000000000000000000002", label: "General" }];
+export const CATEGORY_OPTIONS: SelectOption[] = [
+    { value: "000000000000000000000002", label: "General" }
+];

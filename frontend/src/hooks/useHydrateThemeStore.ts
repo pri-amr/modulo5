@@ -8,17 +8,17 @@ import { useThemeStore } from "@/contexts/useThemeStore";
 // rehidrate localStorage de forma síncrona antes del primer render del cliente. Este
 // hook dispara esa rehidratación manualmente, una sola vez, tras el montaje.
 export const useHydrateThemeStore = (): void => {
-  useEffect(() => {
-    let isMounted = true;
+    useEffect(() => {
+        let isMounted = true;
 
-    void Promise.resolve(useThemeStore.persist.rehydrate()).then(() => {
-      if (isMounted) {
-        useThemeStore.getState().setHasHydrated(true);
-      }
-    });
+        void Promise.resolve(useThemeStore.persist.rehydrate()).then(() => {
+            if (isMounted) {
+                useThemeStore.getState().setHasHydrated(true);
+            }
+        });
 
-    return (): void => {
-      isMounted = false;
-    };
-  }, []);
+        return (): void => {
+            isMounted = false;
+        };
+    }, []);
 };
