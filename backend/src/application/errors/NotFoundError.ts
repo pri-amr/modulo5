@@ -1,5 +1,5 @@
-import { CustomError } from './CustomError';
+import { CustomError } from "./CustomError";
 
 export class NotFoundError extends CustomError {
-  readonly statusCode = 404;
+    readonly statusCode = 404;
 }

@@ -1,5 +1,5 @@
-import { CustomError } from './CustomError';
+import { CustomError } from "./CustomError";
 
 export class ConflictError extends CustomError {
-  readonly statusCode = 409;
+    readonly statusCode = 409;
 }

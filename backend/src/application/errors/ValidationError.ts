@@ -1,5 +1,5 @@
-import { CustomError } from './CustomError';
+import { CustomError } from "./CustomError";
 
 export class ValidationError extends CustomError {
-  readonly statusCode = 400;
+    readonly statusCode = 400;
 }

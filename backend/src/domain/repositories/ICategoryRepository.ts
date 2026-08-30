@@ -1,5 +1,5 @@
-import type { Category } from '../entities/Category';
+import type { Category } from "../entities/Category";
 
 export interface ICategoryRepository {
-  findById(id: string): Promise<Category | null>;
+    findById(id: string): Promise<Category | null>;
 }

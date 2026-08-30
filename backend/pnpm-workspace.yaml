@@ -1,8 +1,8 @@
 allowBuilds:
-  esbuild: true
-  mongodb-memory-server: true
-  unrs-resolver: true
+    esbuild: true
+    mongodb-memory-server: true
+    unrs-resolver: true
 
 overrides:
-  fast-uri: '>=3.1.5'
-  js-yaml: '>=4.3.1'
+    fast-uri: ">=3.1.5"
+    js-yaml: ">=4.3.1"
