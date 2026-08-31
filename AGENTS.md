@@ -28,6 +28,8 @@ Aplicación web de finanzas personales para usuarios argentinos. Centraliza el r
 | Database | MongoDB |
 | Test runner | JEST |
 | Linter / formatter | ESLint + Prettier |
+| Test command | `pnpm test` |
+| Lint command | `pnpm lint` |
 | Typecheck | `tsc --noEmit` (backend y frontend, ambos con `strict: true`) |
 | Package manager | pnpm |
 | CSS | Tailwind 4 |
@@ -144,7 +146,6 @@ variant: "primary" | "secondary"
 ## Code conventions
 
 - Prohibido: lógica dentro de `components/`, llamadas fetch directas dentro de componentes, hooks con múltiples responsabilidades o stores que llaman a services directamente.
-- Testear comportamiento, no implementación. Evitar mocks innecesarios. Los tests deben ser determinísticos.
 - Arrow functions, tipos de retorno explícitos, props desestructuradas.
 - Nada de `any` — `unknown` o generics estrictos.
 - Orden de imports: `react` → `next` → terceros → local. Cada uno ordenado alfabéticamente.
@@ -156,6 +157,21 @@ variant: "primary" | "secondary"
 - Para construir código frontend, usa las skills `/frontend-design`, `senior-architect` y `senior-frontend`.
 - Para construir código backend, usa la skill `/create-module`.
 
+---
+
+## Testing
+
+- Testear comportamiento, no implementación. 
+- Evitar mocks innecesarios.
+- Los tests deben ser determinísticos.
+- Debe cubrir mìnimo un 80% del archivo que se esté testeando.
+- No testear archivos de configuración tipo eslint, prettier, next.config, etc.
+- Globalmente:{
+      branches: 80,
+      functions: 80,
+      lines: 80,
+      statements: 80,
+  },
 ---
 
 ## What NOT to do in this project
