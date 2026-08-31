@@ -5,7 +5,7 @@
 | Ticket | FEAT-008 |
 | Tracker | none |
 | Date | 2026-08-31 |
-| PRD loops | 0 |
+| PRD loops | 1 |
 | Loops since last human decision | 0 |
 
 ## Context and Problem
@@ -86,6 +86,8 @@ Las passkeys quedan fuera, según la nota de orden de entrega de RF-01–RF-07 d
   petición, y no al usuario semilla.
 - FR-17: El sistema debe rechazar con estado HTTP 401 toda petición a las rutas de transacciones que
   no presente una sesión válida.
+- FR-18: El sistema debe redirigir a `/` a todo visitante que acceda directamente a `/login`
+  presentando una sesión válida, sin mostrarle el formulario de login.
 
 ## Non-Functional Requirements
 
@@ -140,6 +142,8 @@ Las passkeys quedan fuera, según la nota de orden de entrega de RF-01–RF-07 d
   identificador de la cuenta de su sesión, y no al del usuario semilla.
 - AC-15 (FR-17): IF una petición a una ruta de transacciones no presenta una sesión válida, THEN THE
   sistema SHALL responder con estado HTTP 401 y SHALL NOT crear ni devolver ninguna transacción.
+- AC-19 (FR-18): WHEN un usuario con sesión válida accede directamente a `/login`, THE sistema SHALL
+  redirigirlo a `/` sin mostrarle el formulario de login.
 - AC-16 (NFR-01): WHEN el sistema establece la sesión, THE sistema SHALL emitir la cookie de sesión
   marcada `HttpOnly` y con `SameSite` en `Lax` o más estricto, con una vigencia máxima de 7 días.
 - AC-17 (NFR-02): THE sistema SHALL verificar la clave con bcrypt usando un factor de costo mayor o
