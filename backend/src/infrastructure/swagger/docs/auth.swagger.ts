@@ -77,4 +77,79 @@
  *                 error:
  *                   type: string
  */
+
+/**
+ * @openapi
+ * /api/auth/login:
+ *   post:
+ *     summary: Autentica una cuenta existente con email y contraseña
+ *     description: >
+ *       Verifica la clave ingresada contra el hash almacenado de la cuenta cuyo email coincide
+ *       (bcrypt, cost 12). Responde el mismo mensaje de error tanto si el email no corresponde a
+ *       ninguna cuenta como si la clave no coincide, para no revelar qué emails están registrados.
+ *       Endpoint público, sin autenticación previa.
+ *     tags:
+ *       - Auth
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *     responses:
+ *       '200':
+ *         description: Credenciales correctas. Devuelve el usuario y un JWT firmado por el backend.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                 token:
+ *                   type: string
+ *       '400':
+ *         description: Error de validación del body (campo faltante, email con formato inválido, o campo no declarado).
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *       '401':
+ *         description: Email inexistente o clave incorrecta. Mismo mensaje genérico en ambos casos.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *       '500':
+ *         description: Error interno del servidor (mensaje genérico, sin detalle interno).
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
 export {};
