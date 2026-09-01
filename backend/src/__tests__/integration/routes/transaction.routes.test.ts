@@ -1,8 +1,12 @@
+process.env.JWT_SECRET = "test-secret-block2-transaction-routes";
+
+import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
 import request from "supertest";
 
 import app from "../../../app";
-import { SEED_USER_NAME } from "../../../infrastructure/database/seed";
+import { TokenService } from "../../../application/services/TokenService";
+import { BCRYPT_COST_FACTOR } from "../../../common/constants/security";
 import { CategoryModel } from "../../../infrastructure/models/CategoryModel";
 import { MoneySourceModel } from "../../../infrastructure/models/MoneySourceModel";
 import { TransactionModel } from "../../../infrastructure/models/TransactionModel";
@@ -13,9 +17,13 @@ import {
 } from "../../helpers/testDatabase";
 
 describe("POST /api/transactions (integración contra Mongo real)", () => {
+    const tokenService = new TokenService();
+
     let moneySourceId: string;
     let categoryId: string;
     let otherMoneySourceId: string;
+    let authUserId: string;
+    let authToken: string;
 
     beforeAll(async () => {
         process.env.MONGODB_URI = await startTestDatabase();
@@ -32,11 +40,18 @@ describe("POST /api/transactions (integración contra Mongo real)", () => {
         await CategoryModel.deleteMany({});
         await TransactionModel.deleteMany({});
 
-        const seedUser = await UserModel.create({
-            name: SEED_USER_NAME,
-            email: "seed.user@example.com",
-            passwordHash: "fixed-test-password-hash"
+        const passwordHash = await bcrypt.hash(
+            "contrasenia-segura",
+            BCRYPT_COST_FACTOR
+        );
+        const authUser = await UserModel.create({
+            name: "Usuario Autenticado",
+            email: "usuario.autenticado@example.com",
+            passwordHash
         });
+        authUserId = authUser._id.toString();
+        authToken = tokenService.sign(authUserId);
+
         const otherUser = await UserModel.create({
             name: "Otro usuario",
             email: "otro.usuario@example.com",
@@ -44,7 +59,7 @@ describe("POST /api/transactions (integración contra Mongo real)", () => {
         });
 
         const moneySource = await MoneySourceModel.create({
-            userId: seedUser._id,
+            userId: authUser._id,
             name: "Efectivo",
             virtual: false,
             amountARS: 1000,
@@ -53,7 +68,7 @@ describe("POST /api/transactions (integración contra Mongo real)", () => {
         moneySourceId = moneySource._id.toString();
 
         const category = await CategoryModel.create({
-            userId: seedUser._id,
+            userId: authUser._id,
             name: "General"
         });
         categoryId = category._id.toString();
@@ -82,9 +97,12 @@ describe("POST /api/transactions (integración contra Mongo real)", () => {
         description: "Supermercado"
     });
 
+    const authHeader = (): string => `Bearer ${authToken}`;
+
     it("body válido de egreso → 201, balance de la fuente actualizado en Mongo", async () => {
         const response = await request(app)
             .post("/api/transactions")
+            .set("Authorization", authHeader())
             .send(validEgresoBody());
 
         expect(response.status).toBe(201);
@@ -106,15 +124,18 @@ describe("POST /api/transactions (integración contra Mongo real)", () => {
     });
 
     it("body válido de ingreso → 201, balance de la fuente actualizado en Mongo", async () => {
-        const response = await request(app).post("/api/transactions").send({
-            type: "ingreso",
-            amount: 300,
-            moneySourceId,
-            currency: "USD",
-            categoryId,
-            date: "02-08-2026",
-            description: "Sueldo"
-        });
+        const response = await request(app)
+            .post("/api/transactions")
+            .set("Authorization", authHeader())
+            .send({
+                type: "ingreso",
+                amount: 300,
+                moneySourceId,
+                currency: "USD",
+                categoryId,
+                date: "02-08-2026",
+                description: "Sueldo"
+            });
 
         expect(response.status).toBe(201);
 
@@ -128,6 +149,7 @@ describe("POST /api/transactions (integración contra Mongo real)", () => {
 
         const response = await request(app)
             .post("/api/transactions")
+            .set("Authorization", authHeader())
             .send(bodyWithoutAmount);
 
         expect(response.status).toBe(400);
@@ -137,6 +159,7 @@ describe("POST /api/transactions (integración contra Mongo real)", () => {
     it("moneySourceId de otro usuario → 403", async () => {
         const response = await request(app)
             .post("/api/transactions")
+            .set("Authorization", authHeader())
             .send({ ...validEgresoBody(), moneySourceId: otherMoneySourceId });
 
         expect(response.status).toBe(403);
@@ -146,6 +169,7 @@ describe("POST /api/transactions (integración contra Mongo real)", () => {
     it("campo extra no declarado → 400", async () => {
         const response = await request(app)
             .post("/api/transactions")
+            .set("Authorization", authHeader())
             .send({ ...validEgresoBody(), extraField: "no declarado" });
 
         expect(response.status).toBe(400);
@@ -163,6 +187,7 @@ describe("POST /api/transactions (integración contra Mongo real)", () => {
 
         const response = await request(app)
             .post("/api/transactions")
+            .set("Authorization", authHeader())
             .send(validEgresoBody());
 
         expect(response.status).toBe(500);
@@ -172,5 +197,17 @@ describe("POST /api/transactions (integración contra Mongo real)", () => {
         );
 
         consoleErrorSpy.mockRestore();
+    });
+
+    it("test-block2-createtransaction-uses-authenticated-userid-not-seed", async () => {
+        const response = await request(app)
+            .post("/api/transactions")
+            .set("Authorization", authHeader())
+            .send(validEgresoBody());
+
+        expect(response.status).toBe(201);
+
+        const persisted = await TransactionModel.findById(response.body.id);
+        expect(persisted?.userId.toString()).toBe(authUserId);
     });
 });

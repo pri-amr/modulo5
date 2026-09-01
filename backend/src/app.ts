@@ -2,6 +2,7 @@ import cors from "cors";
 import express, { type Application, type Router } from "express";
 
 import { swaggerSpec } from "./infrastructure/swagger/swagger.config";
+import { authenticate } from "./presentation/middlewares/authenticate";
 import { errorHandler } from "./presentation/middlewares/errorHandler";
 import { authRoutes } from "./presentation/routes/auth.routes";
 import { transactionRoutes } from "./presentation/routes/transaction.routes";
@@ -24,11 +25,19 @@ app.use(apiRouter);
 
 // Montado sobre `apiRouter` (nunca sobre `app` directamente) para que `errorHandler` capture
 // cualquier error lanzado dentro de estas rutas — ver comentario arriba (R5).
-apiRouter.use("/api/transactions", transactionRoutes);
+//
+// Orden de registro deliberado (Express evalúa middlewares/rutas en el orden en que se
+// registran): `authRoutes` y `/api-docs` primero, sin pasar por `authenticate` (rutas públicas);
+// recién después se monta `authenticate` de forma global (sin prefijo de path), así que cualquier
+// router agregado a partir de acá queda protegido por diseño sin depender de que alguien recuerde
+// agregarle el middleware ruta por ruta (cierra R1 de FEAT-005 — ver
+// docs/ddw/security/threat-FEAT-008.md).
 apiRouter.use("/api/auth", authRoutes);
 apiRouter.get("/api-docs", (_req, res) => {
     res.json(swaggerSpec);
 });
+apiRouter.use(authenticate);
+apiRouter.use("/api/transactions", transactionRoutes);
 
 app.use(errorHandler);
 

@@ -13,7 +13,7 @@ const loginUserService = new LoginUserService(
 
 // La validación del body está delegada íntegramente a `RegisterUserRequestDto` (Zod) dentro de
 // `RegisterUserService.execute` — este controller no duplica reglas de validación. Endpoint
-// público: no lleva `resolveSeedUser` ni ningún otro middleware de autenticación.
+// público: se monta en app.ts antes de `authenticate`, así que no lo atraviesa.
 export const registerUser = async (
     req: Request,
     res: Response,
@@ -29,7 +29,7 @@ export const registerUser = async (
 
 // La validación del body está delegada íntegramente a `LoginUserRequestDto` (Zod) dentro de
 // `LoginUserService.execute` — este controller no duplica reglas de validación. Endpoint público:
-// no lleva `authenticate` (Block 2) ni ningún otro middleware de autenticación.
+// se monta en app.ts antes de `authenticate`, así que no lo atraviesa.
 export const login = async (
     req: Request,
     res: Response,
